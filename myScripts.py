@@ -17,10 +17,11 @@
 # http://step.esa.int/docs/v3.0/apidoc/desktop/
 #############################################################
 
+import snappy
+import sys, os
 from snappy import ProductIO
 from snappy import GPF
 from snappy import jpy
-import sys, os
 
 from os.path import expanduser
 home = expanduser("~")
@@ -29,12 +30,27 @@ SentinelPath = os.path.join(home,"Testy")
 SentinelFile = os.path.join(SentinelPath, "S1A_IW_GRDH_1SDV_20160512T161044_20160512T161109_011228_010FA8_C584.zip")
 
 def newFilepath(Filepath, prefix):
-	import os
 	return os.path.join(os.path.dirname(Filepath), "_".join([prefix,os.path.basename(Filepath)[0:45]]) + ".beam")
 
+def getSigma(SentinelFile):
+	# calculate sigma (radar backscatter)
+	# in ESA SNAP desktop: Radar --> Radiometric --> Calibrate
+	if os.path.exists(SentinelFile):
+		# Read sourceProduct
+		sourceProduct = snappy.ProductIO.readProduct(SentinelFile)
+		# Use calibration operator - I've taken "org.esa.s1tbx.calibration.gpf.CalibrationOp" from the help window
+		CalibrationOp = jpy.get_type("org.esa.s1tbx.calibration.gpf.CalibrationOp")
+		CalOp = CalibrationOp()
+		CalOp.setSourceProduct(sourceProduct)
+		CalOp.setParameter('doExecute', True)
+		# Don't need to create the target product. It is created by the operator.
+		targetProduct = CalOp.getTargetProduct()
+		newFile=newFilepath(SentinelFile, "calibrated")
+		print("Starting writing to the file: " + newFile)
+		snappy.ProductIO.writeProduct(targetProduct, newFile, 'BEAM-DIMAP')
+		return newFile
+
 def getSubset(SentinelFilePath):
-	import sys, snappy
-	from snappy import ProductIO
 	###################################################
 	## Configuration
 	#Polygon should describe part of the Eastern Poland
