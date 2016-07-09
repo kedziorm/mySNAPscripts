@@ -1,16 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# PREREQUISITES: I installed SNAP and then I typed following commands in the
-# terminal to install snappy:
-# cd ~/.snap/snap-python/snappy
-# sudo /usr/bin/python setup.py install
-# I obviously have HDF5 libraries for Java:
-# sudo apt install libjhdf5-jni libjhdf5-java
+#############################################################
+# AUTHOR: Mateusz Kędzior
+# PURPOSE: Python scripts to perform processing of Sentinel-1 data using ESA SNAP
+# PREREQUISITES: 
+# - install ESA SNAP, go to terminal and type:
+#    cd ~/.snap/snap-python/snappy
+#    sudo /usr/bin/python setup.py install
+# - install HDF5 libraries for Java:
+#    sudo apt install libjhdf5-jni libjhdf5-java
+# - modify java_max_mem in ~/.snap/snap-python/snappy/snappy.ini
 
 # DO NOT forget that snappy for ESA SNAP is not Google library with exactly the same name!!
 # Dokumentacja API do SNAP:
 # http://step.esa.int/docs/v3.0/apidoc/desktop/
+#############################################################
 
 from snappy import ProductIO
 from snappy import GPF
@@ -19,6 +24,7 @@ import sys, os
 
 from os.path import expanduser
 home = expanduser("~")
+
 SentinelPath = os.path.join(home,"Testy")
 SentinelFile = os.path.join(SentinelPath, "S1A_IW_GRDH_1SDV_20160512T161044_20160512T161109_011228_010FA8_C584.zip")
 
