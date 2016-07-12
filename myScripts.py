@@ -10,7 +10,7 @@
 #    sudo /usr/bin/python setup.py install
 # - install HDF5 libraries for Java:
 #    sudo apt install libjhdf5-jni libjhdf5-java
-# - modify java_max_mem in ~/.snap/snap-python/snappy/snappy.ini
+# - modification of java_max_mem in ~/.snap/snap-python/snappy/snappy.ini seems to not works properly, so need to invoke in shell 'export _JAVA_OPTIONS=-Xmx4096m' (in this case heap set to 4GB).
 
 # DO NOT forget that snappy for ESA SNAP is not Google library with exactly the same name!!
 # Dokumentacja API do SNAP:
@@ -22,6 +22,10 @@ import sys, os
 from snappy import ProductIO
 from snappy import GPF
 from snappy import jpy
+
+# To avoid RuntimeError: java.lang.OutOfMemoryError: Java heap space
+print("Changing current _JAVA_OPTIONS from: '" + os.environ.get('_JAVA_OPTIONS','Not Set')+ "' to '-Xmx4096m' to avoid OutOfMemoryError")
+os.environ["_JAVA_OPTIONS"] = "-Xmx4096m"
 
 from os.path import expanduser
 home = expanduser("~")
@@ -41,6 +45,7 @@ def getSigma(SentinelFile):
 		# Use calibration operator - I've taken "org.esa.s1tbx.calibration.gpf.CalibrationOp" from the help window
 		CalibrationOp = jpy.get_type("org.esa.s1tbx.calibration.gpf.CalibrationOp")
 		CalOp = CalibrationOp()
+		CalOp.setParameterDefaultValues()
 		CalOp.setSourceProduct(sourceProduct)
 		CalOp.setParameter('doExecute', True)
 		# Don't need to create the target product. It is created by the operator.
