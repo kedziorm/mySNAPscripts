@@ -88,3 +88,43 @@ def getSubset(SentinelFilePath):
 		print("Starting writing to the file: " + newFile)
 		ProductIO.writeProduct(sub_product, newFile, OutputType[1])
 		return newFile + OutputType[0]
+
+def getDiff(file1,file2,band='Soil_Moisture'):
+	import snappy
+	from snappy import GPF
+	from snappy import ProductIO
+
+	products = [ snappy.ProductIO.readProduct(file1), snappy.ProductIO.readProduct(file2) ]
+	#verify if products contain selected band
+	for prod in products:
+		if not (band in prod.getBandNames()):
+			print(band + " not in the " + prod.getName() + " Exiting")
+			return
+
+	GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
+
+	HashMap = jpy.get_type('java.util.HashMap')
+	BandDescriptor = jpy.get_type('org.esa.snap.core.gpf.common.BandMathsOp$BandDescriptor')
+
+	targetBand1 = BandDescriptor()
+	targetBand1.name = 'Difference'
+	targetBand1.type = 'float32'
+	## Here is a problem - following expression is NOT valid:
+	targetBand1.expression = band + ' - $2.' + band
+
+	targetBands = jpy.array('org.esa.snap.core.gpf.common.BandMathsOp$BandDescriptor', 1)
+	targetBands[0] = targetBand1
+
+	parameters = HashMap()
+	parameters.put('targetBands', targetBands)
+
+	## After executing following line, I get:
+	## org.esa.snap.core.gpf.OperatorException: Could not parse expression: 'Soil_Moisture - $2.Soil_Moisture'. Undefined symbol '$2.Soil_Moisture'.
+	result = GPF.createProduct('BandMaths', parameters, products[0])
+
+	print("Write results")
+	ProductIO.writeProduct(result, 'difference_output.dim', 'BEAM-DIMAP')
+	return 'difference_output.dim'
+
+def getDivision(file1,file2,band='Soil_Moisture'):
+    pass
