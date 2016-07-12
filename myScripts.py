@@ -10,22 +10,26 @@
 #    sudo /usr/bin/python setup.py install
 # - install HDF5 libraries for Java:
 #    sudo apt install libjhdf5-jni libjhdf5-java
-# - modification of java_max_mem in ~/.snap/snap-python/snappy/snappy.ini seems to not works properly, so need to invoke in shell 'export _JAVA_OPTIONS=-Xmx4096m' (in this case heap set to 4GB).
+# - java_max_mem setting in ~/.snap/snap-python/snappy/snappy.ini is not interpreted by snappy
+#   so I set _JAVA_OPTIONS in the first lines of scripts to use 4 GB of RAM
 
 # DO NOT forget that snappy for ESA SNAP is not Google library with exactly the same name!!
 # Dokumentacja API do SNAP:
 # http://step.esa.int/docs/v3.0/apidoc/desktop/
 #############################################################
 
-import snappy
 import sys, os
+
+# To avoid RuntimeError: java.lang.OutOfMemoryError: Java heap space
+print("Current _JAVA_OPTIONS: '" + os.environ.get('_JAVA_OPTIONS','Not Set'))
+print("will be changed to '-Xmx4096m' to avoid OutOfMemoryError")
+os.environ["_JAVA_OPTIONS"] = "-Xmx4096m"
+os.system('export _JAVA_OPTIONS=-Xmx4096m')
+
+import snappy
 from snappy import ProductIO
 from snappy import GPF
 from snappy import jpy
-
-# To avoid RuntimeError: java.lang.OutOfMemoryError: Java heap space
-print("Changing current _JAVA_OPTIONS from: '" + os.environ.get('_JAVA_OPTIONS','Not Set')+ "' to '-Xmx4096m' to avoid OutOfMemoryError")
-os.environ["_JAVA_OPTIONS"] = "-Xmx4096m"
 
 from os.path import expanduser
 home = expanduser("~")
