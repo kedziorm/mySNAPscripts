@@ -57,11 +57,12 @@ def getDateFromSMOSfileName(SMOSfile1):
 		return result[0]
 
 
-def getNewSMOSfileName(SMOSfile1, SMOSfile2, destination):
+def getNewSMOSfileName(SMOSfile1, SMOSfile2, destination, operation):
 	import os
 	date1 = getDateFromSMOSfileName(SMOSfile1)
 	date2 = getDateFromSMOSfileName(SMOSfile2)
-	return os.path.join(destination, "_".join(["SMOS", date1, date2]) + ".beam")
+	return os.path.join(destination,
+	"_".join(["SMOS", date1, operation, date2]) + ".beam")
 
 
 def getSigma(SentinelFile):
@@ -116,7 +117,7 @@ def getSubset(SentinelFilePath):
 		return newFile + OutputType[0]
 
 
-def getDiff(file1, file2, destination, band='Soil_Moisture'):
+def getOperation(file1, file2, destination, operation, band='Soil_Moisture'):
 	import snappy
 	from snappy import GPF
 	from snappy import ProductIO
@@ -136,10 +137,11 @@ def getDiff(file1, file2, destination, band='Soil_Moisture'):
 	'org.esa.snap.core.gpf.common.BandMathsOp$BandDescriptor')
 
 	targetBand1 = BandDescriptor()
-	targetBand1.name = 'Difference'
+	targetBand1.name = operation[1]
 	targetBand1.type = 'float32'
 	##  index is zero-based, so index 1 refers to the second product
-	targetBand1.expression = band + ' - $sourceProduct.1.' + band
+	expr = "".join([band, ' ', operation[0], ' $sourceProduct.1.', band])
+	targetBand1.expression = expr
 
 	targetBands = jpy.array(
 	'org.esa.snap.core.gpf.common.BandMathsOp$BandDescriptor', 1)
@@ -152,6 +154,17 @@ def getDiff(file1, file2, destination, band='Soil_Moisture'):
 	## -between-bands-in-two-different-products
 	result = GPF.createProduct('BandMaths', parameters, products)
 
-	resultFile = getNewSMOSfileName(file1, file2, destination)
+	resultFile = getNewSMOSfileName(file1, file2, destination, operation[1])
 	ProductIO.writeProduct(result, resultFile, 'BEAM-DIMAP')
 	return resultFile
+
+
+def getDiff(file1, file2, destination, band='Soil_Moisture'):
+	# TODO: test output from SNAP desktop and from this file
+	return getOperation(file1, file2, destination,
+		["-", "diff"], band='Soil_Moisture')
+
+
+def getDivision(file1, file2, destination, band='Soil_Moisture'):
+	return getOperation(file1, file2, destination,
+		["/", "div"], band='Soil_Moisture')
