@@ -27,6 +27,9 @@ print("will be changed to '-Xmx4096m' to avoid OutOfMemoryError")
 os.environ["_JAVA_OPTIONS"] = "-Xmx4096m"
 os.system('export _JAVA_OPTIONS=-Xmx4096m')
 
+# Global parameter type of output:
+OutputType = [".dim", "BEAM-DIMAP"]
+
 import snappy
 from snappy import ProductIO
 #from snappy import GPF
@@ -40,9 +43,34 @@ SentinelFile = os.path.join(SentinelPath,
 "S1A_IW_GRDH_1SDV_20160512T161044_20160512T161109_011228_010FA8_C584.zip")
 
 
+def getAllowedFormats():
+	# Allowed formats to write: GeoTIFF-BigTIFF,HDF5,Snaphu,BEAM-DIMAP,
+	# GeoTIFF+XML,PolSARPro,NetCDF-CF,NetCDF-BEAM,ENVI,JP2,
+	# Generic Binary BSQ,Gamma,CSV,NetCDF4-CF,GeoTIFF,NetCDF4-BEAM
+	ProductIOPlugInManager = jpy.get_type(
+		'org.esa.snap.core.dataio.ProductIOPlugInManager')
+
+	read_plugins = ProductIOPlugInManager.getInstance().getAllReaderPlugIns()
+	write_plugins = ProductIOPlugInManager.getInstance().getAllWriterPlugIns()
+
+	writerFormats = ""
+	readerFormats = ""
+
+	while write_plugins.hasNext():
+		plugin = next(write_plugins)
+		writerFormats = writerFormats + plugin.getFormatNames()[0] + ","
+
+	while read_plugins.hasNext():
+		plugin = next(read_plugins)
+		readerFormats = readerFormats + plugin.getFormatNames()[0] + ","
+
+	print(("Allowed formats to write: " + writerFormats))
+	print(("Allowed formats to read: " + readerFormats))
+
+
 def newFilepath(Filepath, prefix):
 	return os.path.join(os.path.dirname(Filepath),
-	"_".join([prefix, os.path.basename(Filepath)[0:45]]) + ".beam")
+	"_".join([prefix, os.path.basename(Filepath)[0:45]]) + OutputType[0])
 
 
 def getDateFromSMOSfileName(SMOSfile1):
@@ -62,27 +90,31 @@ def getNewSMOSfileName(SMOSfile1, SMOSfile2, destination, operation):
 	date1 = getDateFromSMOSfileName(SMOSfile1)
 	date2 = getDateFromSMOSfileName(SMOSfile2)
 	return os.path.join(destination,
-	"_".join(["SMOS", date1, operation, date2]) + ".beam")
+	"_".join(["SMOS", date1, operation, date2]) + OutputType[0])
 
 
 def getSigma(SentinelFile):
 	# calculate sigma (radar backscatter)
 	# in ESA SNAP desktop: Radar --> Radiometric --> Calibrate
 	if os.path.exists(SentinelFile):
-		# Read sourceProduct
-		sourceProduct = snappy.ProductIO.readProduct(SentinelFile)
-		# Use calibration operator - I've taken:
-		# "org.esa.s1tbx.calibration.gpf.CalibrationOp" from the help window
-		CalibrationOp = jpy.get_type("org.esa.s1tbx.calibration.gpf.CalibrationOp")
-		CalOp = CalibrationOp()
-		CalOp.setParameterDefaultValues()
-		CalOp.setSourceProduct(sourceProduct)
-		CalOp.setParameter('doExecute', True)
-		# Don't need to create the target product. It is created by the operator.
-		targetProduct = CalOp.getTargetProduct()
 		newFile = newFilepath(SentinelFile, "calibrated")
-		print(("Starting writing to the file: " + newFile))
-		snappy.ProductIO.writeProduct(targetProduct, newFile, 'BEAM-DIMAP')
+		if (not os.path.exists(newFile)):
+			# Read sourceProduct
+			sourceProduct = snappy.ProductIO.readProduct(SentinelFile)
+			# Use calibration operator - I've taken:
+			# "org.esa.s1tbx.calibration.gpf.CalibrationOp" from the help window
+			CalibrationOp = jpy.get_type("org.esa.s1tbx.calibration.gpf.CalibrationOp")
+			CalOp = CalibrationOp()
+			CalOp.setParameterDefaultValues()
+			CalOp.setSourceProduct(sourceProduct)
+			CalOp.setParameter('doExecute', True)
+			# Don't need to create the target product. It is created by the operator.
+			targetProduct = CalOp.getTargetProduct()
+			newFile = newFilepath(SentinelFile, "calibrated")
+			print(("Starting writing to the file: " + newFile))
+			snappy.ProductIO.writeProduct(targetProduct, newFile, OutputType[1])
+		else:
+			print(("File already exists. Exit without changes."))
 		return newFile
 
 
@@ -93,8 +125,6 @@ def getSubset(SentinelFilePath):
 	wkt = "POLYGON((23.00 52.00,24.00 52.00,24.00 52.25,23.00 52.25,23.00 52))"
 	#Prefix added to new file:
 	prefix = "SUBSET"
-	# type of output:
-	OutputType = [".dim", "BEAM-DIMAP"]
 	#############################################
 	#Initialize:
 	SubsetOp = snappy.jpy.get_type('org.esa.snap.core.gpf.common.SubsetOp')
@@ -155,7 +185,7 @@ def getOperation(file1, file2, destination, operation, band='Soil_Moisture'):
 	result = GPF.createProduct('BandMaths', parameters, products)
 
 	resultFile = getNewSMOSfileName(file1, file2, destination, operation[1])
-	ProductIO.writeProduct(result, resultFile, 'BEAM-DIMAP')
+	ProductIO.writeProduct(result, resultFile, OutputType[1])
 	return resultFile
 
 
