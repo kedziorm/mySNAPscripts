@@ -40,6 +40,21 @@ SentinelFile = os.path.join(SentinelPath, "S1A_IW_GRDH_1SDV_20160512T161044_2016
 def newFilepath(Filepath, prefix):
 	return os.path.join(os.path.dirname(Filepath), "_".join([prefix,os.path.basename(Filepath)[0:45]]) + ".beam")
 
+def getDateFromSMOSfileName(SMOSfile1):
+	import re, os
+	result = re.findall("CLF3.._(\d{8}).*",os.path.basename(SMOSfile1))
+	if (len(result) !=1):
+		print "Unable to get date from SMOS file name: " + os.path.basename(SMOSfile1)
+		return False
+	else:
+		return result[0]
+
+def getNewSMOSfileName(SMOSfile1, SMOSfile2,destination):
+	import os
+	date1 = getDateFromSMOSfileName(SMOSfile1)
+	date2 = getDateFromSMOSfileName(SMOSfile2)
+	return os.path.join(destination, "_".join(["SMOS",date1,date2]) + ".beam")
+
 def getSigma(SentinelFile):
 	# calculate sigma (radar backscatter)
 	# in ESA SNAP desktop: Radar --> Radiometric --> Calibrate
@@ -89,7 +104,7 @@ def getSubset(SentinelFilePath):
 		ProductIO.writeProduct(sub_product, newFile, OutputType[1])
 		return newFile + OutputType[0]
 
-def getDiff(file1,file2,band='Soil_Moisture'):
+def getDiff(file1,file2,destination, band='Soil_Moisture'):
 	import snappy
 	from snappy import GPF
 	from snappy import ProductIO
@@ -121,9 +136,9 @@ def getDiff(file1,file2,band='Soil_Moisture'):
 	## More at http://forum.step.esa.int/t/calculate-the-difference-or-division-between-bands-in-two-different-products
 	result = GPF.createProduct('BandMaths', parameters, products)
 
-	print("Write results")
-	ProductIO.writeProduct(result, 'difference_output.dim', 'BEAM-DIMAP')
-	return 'difference_output.dim'
+	resultFile = getNewSMOSfileName(file1, file2,destination)
+	ProductIO.writeProduct(result, resultFile, 'BEAM-DIMAP')
+	return resultFile
 
 def getDivision(file1,file2,band='Soil_Moisture'):
     pass
