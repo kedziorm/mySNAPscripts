@@ -27,17 +27,22 @@ print("will be changed to '-Xmx4096m' to avoid OutOfMemoryError")
 os.environ["_JAVA_OPTIONS"] = "-Xmx4096m"
 os.system('export _JAVA_OPTIONS=-Xmx4096m')
 
-# Global parameter type of output:
+##### Global parameters:
+# output files format:
 OutputType = [".dim", "BEAM-DIMAP"]
+# Area - Polygon should describe part of the Eastern Poland
+wkt = "POLYGON((23.00 52.00,24.00 52.00,24.00 52.25,23.00 52.25,23.00 52))"
+# prefixes added to file names:
+prefixes = ["calibrated", "subset"]
 
 import snappy
 from snappy import ProductIO
 #from snappy import GPF
 from snappy import jpy
 
+# Sample file used in testing:
 from os.path import expanduser
 home = expanduser("~")
-
 SentinelPath = os.path.join(home, "Testy")
 SentinelFile = os.path.join(SentinelPath,
 "S1A_IW_GRDH_1SDV_20160512T161044_20160512T161109_011228_010FA8_C584.zip")
@@ -97,7 +102,7 @@ def getSigma(SentinelFile):
 	# calculate sigma (radar backscatter)
 	# in ESA SNAP desktop: Radar --> Radiometric --> Calibrate
 	if os.path.exists(SentinelFile):
-		newFile = newFilepath(SentinelFile, "calibrated")
+		newFile = newFilepath(SentinelFile, prefixes[0])
 		if (not os.path.exists(newFile)):
 			# Read sourceProduct
 			sourceProduct = snappy.ProductIO.readProduct(SentinelFile)
@@ -110,7 +115,6 @@ def getSigma(SentinelFile):
 			CalOp.setParameter('doExecute', True)
 			# Don't need to create the target product. It is created by the operator.
 			targetProduct = CalOp.getTargetProduct()
-			newFile = newFilepath(SentinelFile, "calibrated")
 			print(("Starting writing to the file: " + newFile))
 			snappy.ProductIO.writeProduct(targetProduct, newFile, OutputType[1])
 		else:
@@ -118,33 +122,25 @@ def getSigma(SentinelFile):
 		return newFile
 
 
-def getSubset(SentinelFilePath):
-	###################################################
-	## Configuration
-	#Polygon should describe part of the Eastern Poland
-	wkt = "POLYGON((23.00 52.00,24.00 52.00,24.00 52.25,23.00 52.25,23.00 52))"
-	#Prefix added to new file:
-	prefix = "SUBSET"
-	#############################################
+def getSubset(SentinelFile):
 	#Initialize:
 	SubsetOp = snappy.jpy.get_type('org.esa.snap.core.gpf.common.SubsetOp')
 	WKTReader = snappy.jpy.get_type('com.vividsolutions.jts.io.WKTReader')
 	geom = WKTReader().read(wkt)
 	op = SubsetOp()
 	# read source product and set properties:
-	product = ProductIO.readProduct(SentinelFilePath)
+	product = ProductIO.readProduct(SentinelFile)
 	op.setSourceProduct(product)
 	op.setGeoRegion(geom)
 	sub_product = op.getTargetProduct()
 	# Ensure that file does not exists:
-	newFile = newFilepath(SentinelFile, prefix)
-	if os.path.exists(newFile + OutputType[0]):
+	newFile = newFilepath(SentinelFile, prefixes[1])
+	if os.path.exists(newFile):
 		print("It seems that subset of your data already exists. Bye!")
-		return
 	else:
 		print(("Starting writing to the file: " + newFile))
 		ProductIO.writeProduct(sub_product, newFile, OutputType[1])
-		return newFile + OutputType[0]
+	return newFile
 
 
 def getOperation(file1, file2, destination, operation, band='Soil_Moisture'):
