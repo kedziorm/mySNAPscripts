@@ -109,8 +109,8 @@ def getDiff(file1,file2,band='Soil_Moisture'):
 	targetBand1 = BandDescriptor()
 	targetBand1.name = 'Difference'
 	targetBand1.type = 'float32'
-	## Here is a problem - following expression is NOT valid:
-	targetBand1.expression = band + ' - $2.' + band
+	##  index is zero-based, so index 1 refers to the second product
+	targetBand1.expression = band + ' - $sourceProduct.1.' + band
 
 	targetBands = jpy.array('org.esa.snap.core.gpf.common.BandMathsOp$BandDescriptor', 1)
 	targetBands[0] = targetBand1
@@ -118,9 +118,8 @@ def getDiff(file1,file2,band='Soil_Moisture'):
 	parameters = HashMap()
 	parameters.put('targetBands', targetBands)
 
-	## After executing following line, I get:
-	## org.esa.snap.core.gpf.OperatorException: Could not parse expression: 'Soil_Moisture - $2.Soil_Moisture'. Undefined symbol '$2.Soil_Moisture'.
-	result = GPF.createProduct('BandMaths', parameters, products[0])
+	## More at http://forum.step.esa.int/t/calculate-the-difference-or-division-between-bands-in-two-different-products
+	result = GPF.createProduct('BandMaths', parameters, products)
 
 	print("Write results")
 	ProductIO.writeProduct(result, 'difference_output.dim', 'BEAM-DIMAP')
