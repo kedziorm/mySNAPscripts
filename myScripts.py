@@ -117,6 +117,8 @@ def getSigma(SentinelFile):
 			targetProduct = CalOp.getTargetProduct()
 			print(("Starting writing to the file: " + newFile))
 			snappy.ProductIO.writeProduct(targetProduct, newFile, OutputType[1])
+			sourceProduct.dispose()
+			targetProduct.dispose()
 		else:
 			print(("File already exists. Exit without changes."))
 		return newFile
@@ -140,6 +142,8 @@ def getSubset(SentinelFile):
 	else:
 		print(("Starting writing to the file: " + newFile))
 		ProductIO.writeProduct(sub_product, newFile, OutputType[1])
+	product.dispose()
+	sub_product.dispose()
 	return newFile
 
 
@@ -182,6 +186,9 @@ def getOperation(file1, file2, destination, operation, band='Soil_Moisture'):
 
 	resultFile = getNewSMOSfileName(file1, file2, destination, operation[1])
 	ProductIO.writeProduct(result, resultFile, OutputType[1])
+	for prod in products:
+		prod.dispose()
+	result.dispose()
 	return resultFile
 
 
