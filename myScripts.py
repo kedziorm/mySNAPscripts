@@ -13,6 +13,12 @@
 # - java_max_mem setting in ~/.snap/snap-python/snappy/snappy.ini
 #   is not interpreted by snappy
 #   so I set _JAVA_OPTIONS in the first lines of scripts to use 4 GB of RAM
+# - to avoid errors jhdf5 errors as described here: http://forum.step.esa.int/t/snappy-hdf5-error/867/3
+#    execute following lines:
+#    SNAP_HOME=~/snap
+#    cd $SNAP_HOME/snap/modules/lib/x86_64
+#    ln -s ../amd64/libjhdf.so
+#    ln -s ../amd64/libjhdf5.so
 
 # DO NOT forget that snappy for ESA SNAP is not Google library!!
 # Dokumentacja API do SNAP:
