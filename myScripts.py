@@ -211,3 +211,36 @@ def getDivision(file1, file2, destination, band='Soil_Moisture'):
 def getSum(file1, file2, destination, band='Soil_Moisture'):
 	return getOperation(file1, file2, destination,
 		["+", "sum"], band)
+
+# I will use Sentinel and SMOS data
+# I will use two functions: getCoarseResProd (to 25 km resolution) or getBetterResProd (to 1 km resolution)
+
+def getCoarseResProd(file1, destinationPath):
+	return getResampled(file1, destinationPath, resolution=25000)
+
+def getBetterResProd(file1, destinationPath):
+	return getResampled(file1, destinationPath, resolution=1000)
+
+def getResampled(file1, destinationPath, resolution=25000):
+	# TODO: this should be tested!!!
+	# More info: http://forum.step.esa.int/t/aggregation-and-interpolation-of-sentinel-products-should-i-use-snappy-or-gdal-tools/2522/3
+	import snappy
+	from snappy import GPF
+	from snappy import ProductIO
+
+	product = snappy.ProductIO.readProduct(file1)
+
+	HashMap = jpy.get_type('java.util.HashMap')
+	GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
+	parameters = HashMap()
+	parameters.put('sourceProduct', product)
+	parameters.put('upsampling', "Bilinear")
+	parameters.put('downsampling', "Mean")
+	# As I checked in SNAP desktop, 'targetResolution' option is sometimes not available
+	# and I need to use targetHeight and targetWidth instead
+	parameters.put('targetResolution', resolution)
+	terrain = GPF.createProduct('Resample', parameters, destinationPath)
+
+	product.dispose()
+
+	return destinationPath
