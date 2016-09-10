@@ -201,9 +201,13 @@ def getOperation(file1, file2, destination, operation, band='Soil_Moisture'):
 def getDiff(file1, file2, destination, band='Soil_Moisture'):
 	# TODO: test output from SNAP desktop and from this file
 	return getOperation(file1, file2, destination,
-		["-", "diff"], band='Soil_Moisture')
+		["-", "diff"], band)
 
 
 def getDivision(file1, file2, destination, band='Soil_Moisture'):
 	return getOperation(file1, file2, destination,
-		["/", "div"], band='Soil_Moisture')
+		["/", "div"], band)
+
+def getSum(file1, file2, destination, band='Soil_Moisture'):
+	return getOperation(file1, file2, destination,
+		["+", "sum"], band)
