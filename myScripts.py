@@ -132,6 +132,7 @@ def getSigma(SentinelFile):
 
 def getSubset(SentinelFile):
 	#Initialize:
+	print(("Please exceute getSubset method AFTER executing getSigma (after using Calibration)"))
 	SubsetOp = snappy.jpy.get_type('org.esa.snap.core.gpf.common.SubsetOp')
 	WKTReader = snappy.jpy.get_type('com.vividsolutions.jts.io.WKTReader')
 	geom = WKTReader().read(wkt)
