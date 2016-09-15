@@ -245,3 +245,22 @@ def getResampled(file1, destinationPath, resolution=25000):
 	product.dispose()
 
 	return destinationPath
+
+def getReprojected(file1, destinationPath, crs='EPSG:4326'):
+	import snappy
+	from snappy import GPF
+	from snappy import ProductIO
+
+	product = snappy.ProductIO.readProduct(file1)
+
+	HashMap = jpy.get_type('java.util.HashMap')
+	GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
+	parameters = HashMap()
+	parameters.put('source', product)
+	parameters.put('crs', crs)
+	parameters.put('resampling', "Nearest")
+	GPF.createProduct('Reproject', parameters, destinationPath)
+
+	product.dispose()
+
+	return destinationPath
