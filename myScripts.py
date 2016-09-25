@@ -255,11 +255,12 @@ def getReprojected(file1, destinationPath, crs='EPSG:4326'):
 
 	HashMap = jpy.get_type('java.util.HashMap')
 	GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
+
 	parameters = HashMap()
-	parameters.put('source', product)
 	parameters.put('crs', crs)
 	parameters.put('resampling', "Nearest")
-	GPF.createProduct('Reproject', parameters, destinationPath)
+	result = GPF.createProduct('Reproject', parameters, product)
+	ProductIO.writeProduct(result,  destinationPath, 'BEAM-DIMAP')
 
 	product.dispose()
 
