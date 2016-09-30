@@ -246,6 +246,32 @@ def getResampled(file1, destinationPath, resolution=25000):
 
 	return destinationPath
 
+def getTerrainCorrected(file1, destinationPath, crs='EPSG:4326'):
+	# According to lveci: "GRD products are not terrain corrected. Due to the nature of SAR acquisitions, in order to get an accurate geocoding you need to account for the geometry of the acquisition"
+	# "Over scenes where you have a DEM, you should use range Doppler terrain correction"
+	# Radar --> Geometric --> Terrain Correction --> Range-Doppler Terrain Correction
+	import snappy
+	from snappy import GPF
+	from snappy import ProductIO
+
+	product = snappy.ProductIO.readProduct(file1)
+
+	HashMap = jpy.get_type('java.util.HashMap')
+	GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
+
+	parameters = HashMap()
+	parameters.put('demResamplingMethod', "BILINEAR_INTERPOLATION")
+	parameters.put('imgResamplingMethod', "BILINEAR_INTERPOLATION")
+	parameters.put('mapProjection', crs)
+	parameters.put('saveDEM', True)
+	
+	result = GPF.createProduct('Terrain-Correction', parameters, product)
+	ProductIO.writeProduct(result,  destinationPath, 'BEAM-DIMAP')
+
+	product.dispose()
+
+	return destinationPath
+
 def getReprojected(file1, destinationPath, crs='EPSG:4326'):
 	import snappy
 	from snappy import GPF
