@@ -246,7 +246,7 @@ def getResampled(file1, destinationPath, resolution=25000):
 
 	return destinationPath
 
-def getTerrainCorrected(file1, destinationPath, crs='EPSG:4326'):
+def getTerrainCorrected(file1, destinationPath, crs='WGS84(DD)'):
 	# According to lveci: "GRD products are not terrain corrected. Due to the nature of SAR acquisitions, in order to get an accurate geocoding you need to account for the geometry of the acquisition"
 	# "Over scenes where you have a DEM, you should use range Doppler terrain correction"
 	# Radar --> Geometric --> Terrain Correction --> Range-Doppler Terrain Correction
@@ -260,10 +260,18 @@ def getTerrainCorrected(file1, destinationPath, crs='EPSG:4326'):
 	GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
 
 	parameters = HashMap()
+	parameters.put('demName', "SRTM 3Sec")
+	parameters.put('externalDEMApplyEGM', True)
 	parameters.put('demResamplingMethod', "BILINEAR_INTERPOLATION")
 	parameters.put('imgResamplingMethod', "BILINEAR_INTERPOLATION")
+	parameters.put('pixelSpacingInMeter', "0.0")
 	parameters.put('mapProjection', crs)
-	parameters.put('saveDEM', True)
+	parameters.put('nodataValueAtSea', True)
+	parameters.put('saveDEM', False)
+	parameters.put('saveLatLon', False)
+	parameters.put('saveIncidenceAngleFromEllipsoid', False)
+	parameters.put('saveLocalIncidenceAngle', False)
+	parameters.put('saveProjectedLocalIncidenceAngle', False)
 	
 	result = GPF.createProduct('Terrain-Correction', parameters, product)
 	ProductIO.writeProduct(result,  destinationPath, 'BEAM-DIMAP')
