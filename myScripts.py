@@ -83,6 +83,22 @@ def newFilepath(Filepath, prefix):
 	return os.path.join(os.path.dirname(Filepath),
 	"_".join([prefix, os.path.basename(Filepath)[0:45]]) + OutputType[0])
 
+def getDateFromFileName(FileName):
+	import re
+	daty = re.findall('(\d{8})',FileName)
+	if validateDate(daty[0]):
+		return daty[0]
+	else:
+		return daty[1]
+
+def validateDate(date_text, dateFormat='%Y%m%d'):
+	import datetime
+	try:
+		datetime.datetime.strptime(date_text, dateFormat)
+		return True
+	except ValueError:
+		raise ValueError("Incorrect data format, should be: "+ dateFormat)
+
 
 def getDateFromSMOSfileName(SMOSfile1):
 	import re
