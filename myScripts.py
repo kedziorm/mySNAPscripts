@@ -111,6 +111,35 @@ def getListOfDatesFromFileName(folderPath):
 	posort.sort()
 	return posort
 
+def getFilterredListOfDatesAndFiles(folderPath,extension=".nc"):
+	import os
+	myList = getListOfDatesFromFileName(folderPath)
+	for j in myList:
+		if (os.path.splitext(j[1])[1] == extension):
+			print "\t".join([j[0],j[1],os.path.splitext(j[1])[1]])
+
+def writeFilterredListToFile(folderPath,extension=".nc"):
+	import os
+	charset = ""
+	myList = getListOfDatesFromFileName(folderPath)
+	f = open(os.path.join(folderPath,"list.txt"),'w')
+	for j in myList:
+		if (os.path.splitext(j[1])[1] == extension):
+			charset = charset + "\t".join([j[0],j[1],os.path.splitext(j[1])[1]]) + "\n"
+	f.write(charset)
+	f.close()
+
+def unpackAllAndRemoveAllArchives(folderPath,extension="tgz"):
+	import os, glob, tarfile
+	path = os.path.join(folderPath,"*." + extension)
+	FileList = glob.glob(path)
+	for archive in FileList:
+		tar=tarfile.open(archive)
+		tar.extractall(path=folderPath)
+		tar.close()
+		os.remove(archive)
+
+
 def getDateFromSMOSfileName(SMOSfile1):
 	import re
 	import os
