@@ -99,6 +99,17 @@ def validateDate(date_text, dateFormat='%Y%m%d'):
 	except ValueError:
 		raise ValueError("Incorrect data format, should be: "+ dateFormat)
 
+def getListOfFiles(folderPath):
+	import os
+	return os.listdir(folderPath)
+
+def getListOfDatesFromFileName(folderPath):
+	mm = getListOfFiles(folderPath)
+	posort = []
+	for i in mm:
+		posort.append([getDateFromFileName(i),i])
+	posort.sort()
+	return posort
 
 def getDateFromSMOSfileName(SMOSfile1):
 	import re
@@ -283,11 +294,11 @@ def getTerrainCorrected(file1, destinationPath, crs='WGS84(DD)'):
 	parameters.put('pixelSpacingInMeter', "0.0")
 	parameters.put('mapProjection', crs)
 	parameters.put('nodataValueAtSea', True)
-	parameters.put('saveDEM', False)
-	parameters.put('saveLatLon', False)
-	parameters.put('saveIncidenceAngleFromEllipsoid', False)
-	parameters.put('saveLocalIncidenceAngle', False)
-	parameters.put('saveProjectedLocalIncidenceAngle', False)
+	parameters.put('saveDEM', True)
+	parameters.put('saveLatLon', True)
+	parameters.put('saveIncidenceAngleFromEllipsoid', True)
+	parameters.put('saveLocalIncidenceAngle', True)
+	parameters.put('saveProjectedLocalIncidenceAngle', True)
 	
 	result = GPF.createProduct('Terrain-Correction', parameters, product)
 	ProductIO.writeProduct(result,  destinationPath, 'BEAM-DIMAP')
