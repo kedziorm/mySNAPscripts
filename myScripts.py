@@ -342,6 +342,7 @@ def getTerrainCorrected(file1, destinationPath, crs='WGS84(DD)'):
 	# According to lveci: "GRD products are not terrain corrected. Due to the nature of SAR acquisitions, in order to get an accurate geocoding you need to account for the geometry of the acquisition"
 	# "Over scenes where you have a DEM, you should use range Doppler terrain correction"
 	# Radar --> Geometric --> Terrain Correction --> Range-Doppler Terrain Correction
+	# Save parameters (saveLatLon, saveDEM) means that additional information (elevation, latLon) will be saved in output file which is not needed for further processing
 	import snappy
 	from snappy import GPF
 	from snappy import ProductIO
@@ -359,11 +360,11 @@ def getTerrainCorrected(file1, destinationPath, crs='WGS84(DD)'):
 	parameters.put('pixelSpacingInMeter', "0.0")
 	parameters.put('mapProjection', crs)
 	parameters.put('nodataValueAtSea', True)
-	parameters.put('saveDEM', True)
-	parameters.put('saveLatLon', True)
-	parameters.put('saveIncidenceAngleFromEllipsoid', True)
-	parameters.put('saveLocalIncidenceAngle', True)
-	parameters.put('saveProjectedLocalIncidenceAngle', True)
+	parameters.put('saveDEM', False)
+	parameters.put('saveLatLon', False)
+	parameters.put('saveIncidenceAngleFromEllipsoid', False)
+	parameters.put('saveLocalIncidenceAngle', False)
+	parameters.put('saveProjectedLocalIncidenceAngle', False)
 	
 	result = GPF.createProduct('Terrain-Correction', parameters, product)
 	ProductIO.writeProduct(result,  destinationPath, 'BEAM-DIMAP')
