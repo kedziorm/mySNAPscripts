@@ -160,6 +160,23 @@ def getNewSMOSfileName(SMOSfile1, SMOSfile2, destination, operation):
 	"_".join(["SMOS", date1, operation, date2]) + OutputType[0])
 
 
+def writeToLog(message, messageType='ERROR'):
+	import logging,os
+	logger = logging.getLogger('Dyzagregacja')
+	hdlr = logging.FileHandler(os.path.join(os.path.expanduser("~"),'Dropbox/DyzagregacjaSMOS/logi.log'))
+	formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+	hdlr.setFormatter(formatter)
+	logger.addHandler(hdlr) 
+	logger.setLevel(logging.INFO)
+	if (messageType == 'ERROR'):
+		logger.error(message)
+	elif (messageType == 'WARNING'):
+		logger.warning(message)
+	else:
+		logger.info(message)
+	logger.removeHandler(hdlr)
+
+
 def getSigma(SentinelFile):
 	# calculate sigma (radar backscatter)
 	# in ESA SNAP desktop: Radar --> Radiometric --> Calibrate
