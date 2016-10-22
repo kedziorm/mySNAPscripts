@@ -320,22 +320,23 @@ def getResampled(file1, destinationPath, resolution=25000):
 	import snappy
 	from snappy import GPF
 	from snappy import ProductIO
+	if (not os.path.exists(destinationPath)):
+		product = snappy.ProductIO.readProduct(file1)
+		HashMap = jpy.get_type('java.util.HashMap')
+		GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
+		parameters = HashMap()
+		parameters.put('sourceProduct', product)
+		parameters.put('upsampling', "Bilinear")
+		parameters.put('downsampling', "Mean")
+		# As I checked in SNAP desktop, 'targetResolution' option is sometimes not available
+		# and I need to use targetHeight and targetWidth instead
+		parameters.put('targetResolution', resolution)
+		result = GPF.createProduct('Resample', parameters, product)
+		ProductIO.writeProduct(result,  destinationPath, 'BEAM-DIMAP')
 
-	product = snappy.ProductIO.readProduct(file1)
-
-	HashMap = jpy.get_type('java.util.HashMap')
-	GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
-	parameters = HashMap()
-	parameters.put('sourceProduct', product)
-	parameters.put('upsampling', "Bilinear")
-	parameters.put('downsampling', "Mean")
-	# As I checked in SNAP desktop, 'targetResolution' option is sometimes not available
-	# and I need to use targetHeight and targetWidth instead
-	parameters.put('targetResolution', resolution)
-	terrain = GPF.createProduct('Resample', parameters, destinationPath)
-
-	product.dispose()
-
+		product.dispose()
+	else:
+		print("It seems that destination file already exists. Bye!")
 	return destinationPath
 
 def getTerrainCorrected(file1, destinationPath, crs='WGS84(DD)'):
@@ -346,49 +347,51 @@ def getTerrainCorrected(file1, destinationPath, crs='WGS84(DD)'):
 	import snappy
 	from snappy import GPF
 	from snappy import ProductIO
+	if (not os.path.exists(destinationPath)):
+		product = snappy.ProductIO.readProduct(file1)
 
-	product = snappy.ProductIO.readProduct(file1)
+		HashMap = jpy.get_type('java.util.HashMap')
+		GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
 
-	HashMap = jpy.get_type('java.util.HashMap')
-	GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
-
-	parameters = HashMap()
-	parameters.put('demName', "SRTM 3Sec")
-	parameters.put('externalDEMApplyEGM', True)
-	parameters.put('demResamplingMethod', "BILINEAR_INTERPOLATION")
-	parameters.put('imgResamplingMethod', "BILINEAR_INTERPOLATION")
-	parameters.put('pixelSpacingInMeter', "0.0")
-	parameters.put('mapProjection', crs)
-	parameters.put('nodataValueAtSea', True)
-	parameters.put('saveDEM', False)
-	parameters.put('saveLatLon', False)
-	parameters.put('saveIncidenceAngleFromEllipsoid', False)
-	parameters.put('saveLocalIncidenceAngle', False)
-	parameters.put('saveProjectedLocalIncidenceAngle', False)
+		parameters = HashMap()
+		parameters.put('demName', "SRTM 3Sec")
+		parameters.put('externalDEMApplyEGM', True)
+		parameters.put('demResamplingMethod', "BILINEAR_INTERPOLATION")
+		parameters.put('imgResamplingMethod', "BILINEAR_INTERPOLATION")
+		parameters.put('pixelSpacingInMeter', "0.0")
+		parameters.put('mapProjection', crs)
+		parameters.put('nodataValueAtSea', True)
+		parameters.put('saveDEM', False)
+		parameters.put('saveLatLon', False)
+		parameters.put('saveIncidenceAngleFromEllipsoid', False)
+		parameters.put('saveLocalIncidenceAngle', False)
+		parameters.put('saveProjectedLocalIncidenceAngle', False)
 	
-	result = GPF.createProduct('Terrain-Correction', parameters, product)
-	ProductIO.writeProduct(result,  destinationPath, 'BEAM-DIMAP')
+		result = GPF.createProduct('Terrain-Correction', parameters, product)
+		ProductIO.writeProduct(result,  destinationPath, 'BEAM-DIMAP')
 
-	product.dispose()
-
+		product.dispose()
+	else:
+		print("It seems that destination file already exists. Bye!")
 	return destinationPath
 
 def getReprojected(file1, destinationPath, crs='EPSG:4326'):
 	import snappy
 	from snappy import GPF
 	from snappy import ProductIO
+	if (not os.path.exists(destinationPath)):
+		product = snappy.ProductIO.readProduct(file1)
 
-	product = snappy.ProductIO.readProduct(file1)
+		HashMap = jpy.get_type('java.util.HashMap')
+		GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
 
-	HashMap = jpy.get_type('java.util.HashMap')
-	GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
-
-	parameters = HashMap()
-	parameters.put('crs', crs)
-	parameters.put('resampling', "Nearest")
-	result = GPF.createProduct('Reproject', parameters, product)
-	ProductIO.writeProduct(result,  destinationPath, 'BEAM-DIMAP')
-
-	product.dispose()
+		parameters = HashMap()
+		parameters.put('crs', crs)
+		parameters.put('resampling', "Nearest")
+		result = GPF.createProduct('Reproject', parameters, product)
+		ProductIO.writeProduct(result,  destinationPath, 'BEAM-DIMAP')
+		product.dispose()
+	else:
+		print("It seems that destination file already exists. Bye!")
 
 	return destinationPath
