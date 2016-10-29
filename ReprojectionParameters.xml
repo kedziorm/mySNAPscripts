@@ -1,0 +1,23 @@
+<parameters>
+    <crs>GEOGCS[&quot;WGS84(DD)&quot;, 
+      DATUM[&quot;WGS84&quot;, 
+        SPHEROID[&quot;WGS84&quot;, 6378137.0, 298.257223563]], 
+      PRIMEM[&quot;Greenwich&quot;, 0.0], 
+      UNIT[&quot;degree&quot;, 0.017453292519943295], 
+      AXIS[&quot;Geodetic longitude&quot;, EAST], 
+      AXIS[&quot;Geodetic latitude&quot;, NORTH]]</crs>
+    <resampling>Nearest</resampling>
+    <referencePixelX>2.5</referencePixelX>
+    <referencePixelY>1.0</referencePixelY>
+    <easting>21.17044238633425</easting>
+    <northing>51.50199823054914</northing>
+    <orientation>0.0</orientation>
+    <pixelSizeX>0.25</pixelSizeX>
+    <pixelSizeY>0.25</pixelSizeY>
+    <width>5</width>
+    <height>2</height>
+    <orthorectify>false</orthorectify>
+    <noDataValue>NaN</noDataValue>
+    <includeTiePointGrids>true</includeTiePointGrids>
+    <addDeltaBands>false</addDeltaBands>
+</parameters>
