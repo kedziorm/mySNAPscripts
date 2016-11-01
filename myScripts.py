@@ -166,7 +166,7 @@ def writeToLog(message, messageType='ERROR'):
 	hdlr = logging.FileHandler(os.path.join(os.path.expanduser("~"),'Dropbox/DyzagregacjaSMOS/logi.log'))
 	formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 	hdlr.setFormatter(formatter)
-	logger.addHandler(hdlr) 
+	logger.addHandler(hdlr)
 	logger.setLevel(logging.INFO)
 	if (messageType == 'ERROR'):
 		logger.error(message)
@@ -195,6 +195,51 @@ def file_size(file_path):
 		file_info = os.stat(file_path)
 		return convert_bytes(file_info.st_size)
 
+def createMap(raster, vmax, vmin, output, shapefile=None, title=None):
+	# Creates image from raster and shapefile
+	# Based on: https://gist.github.com/jdherman/7434f7431d1cc0350dbe
+	##################################################################
+	# Works on following input parameters (rasters):
+	# NETCDF:"/home/myName/ext-SM_RE02_MIR_CLF33A_20101231T000000_20120102T235959_272_001_7_1.DBL.nc":Soil_Moisture
+	# (SMOS - works properly)
+	# calibrated_S1A_IW_GRDH_1SDV_20160512T161044_20160512T161.data/Sigma0_VH.img
+	# (processed Sentinel-1, crashes, because of the MemoryError)
+	###################################################################
+	# Prerequisities:
+	# sudo apt-get install python-mpltoolkits.basemap
+	from osgeo import gdal
+	import matplotlib.pyplot as plt
+	import numpy as np
+	from mpl_toolkits.basemap import Basemap
+	
+	# By default, osgeo.gdal returns None on error, and does not normally raise informative exceptions
+	gdal.UseExceptions()
+	
+	gdata = gdal.Open(raster)
+	geo = gdata.GetGeoTransform()
+	data = gdata.ReadAsArray()
+	
+	xres = geo[1]
+	yres = geo[5]
+	
+	m = Basemap(llcrnrlon=17.00,llcrnrlat=48.75,urcrnrlon=25.25,urcrnrlat=54.50)
+
+	if shapefile is not None:
+		m.readshapefile(shapefile,'shp',drawbounds=True, color='0.3')
+	xmin = geo[0] + xres * 0.5
+	xmax = geo[0] + (xres * gdata.RasterXSize) - xres * 0.5
+	ymin = geo[3] + (yres * gdata.RasterYSize) + yres * 0.5
+	ymax = geo[3] - yres * 0.5
+	x,y = np.mgrid[xmin:xmax+xres:xres, ymax+yres:ymin:yres]
+	x,y = m(x,y)
+	cmap = plt.cm.gist_rainbow
+	cmap.set_under ('1.0')
+	cmap.set_bad('0.8')
+	im = m.pcolormesh(x,y, data.T, cmap=cmap, vmin=vmin, vmax=vmax)
+	cb = plt.colorbar( orientation='vertical', fraction=0.10, shrink=0.7)
+	if title is not None:
+		plt.title(title)
+	plt.savefig(output)
 
 def getSigma(SentinelFile):
 	# calculate sigma (radar backscatter)
