@@ -196,18 +196,34 @@ def file_size(file_path):
 		return convert_bytes(file_info.st_size)
 
 def createMap(raster, vmax, vmin, output, shapefile=None, title=None):
+	###################################################################
+	# Author: Mateusz Kędzior
 	# Creates image from raster and shapefile
 	# Based on: https://gist.github.com/jdherman/7434f7431d1cc0350dbe
-	##################################################################
-	# Works on following input parameters (rasters):
-	# NETCDF:"/home/myName/ext-SM_RE02_MIR_CLF33A_20101231T000000_20120102T235959_272_001_7_1.DBL.nc":Soil_Moisture
-	# (SMOS - works properly)
-	# calibrated_S1A_IW_GRDH_1SDV_20160512T161044_20160512T161.data/Sigma0_VH.img
-	# (processed Sentinel-1, crashes, because of the MemoryError)
-	###################################################################
+	######
+	# TODO: Consider rewriting to pyQGIS
+	# (http://docs.qgis.org/testing/en/docs/pyqgis_developer_cookbook/composer.html)
+	#####
 	# Prerequisities:
 	# sudo apt-get install python-mpltoolkits.basemap
-	from osgeo import gdal
+	##################################################################
+	## Sample files for testing (comment in gedit: CTRL + M, uncomment: CTRL + SHIFT + M)
+	#import os
+	#from os.path import expanduser
+	#home = expanduser("~")
+
+	#SMOSfile = os.path.join(home,"Dropbox/Dane SMOS CATDS dla Wisły/DA_TC_MIR_CL_33/EXT-SM_RE02_MIR_CLF33A_20101231T000000_20120102T235959_272_001_7/ext-SM_RE02_MIR_CLF33A_20101231T000000_20120102T235959_272_001_7_1.DBL.nc")
+	#SMOSraster = 'NETCDF:"' + SMOSfile + '":Soil_Moisture'
+	#SentinelRaster = os.path.join(home,"Testy/calibrated_S1A_IW_GRDH_1SDV_20160512T161044_20160512T161.data/Sigma0_VH.img")
+	#vmin = 0
+	#vmax = 3000
+	#output = os.path.join(home,"testy.png")
+	#shapefile = os.path.join(home,"Dropbox/mapy/dorzecze_Wisły")
+	#createMap(SMOSraster, vmax, vmin, output, shapefile)
+	#createMap(SentinelRaster, vmax, vmin, output)
+	###################################################################
+
+	from osgeo import gdal, osr
 	import matplotlib.pyplot as plt
 	import numpy as np
 	from mpl_toolkits.basemap import Basemap
@@ -217,11 +233,69 @@ def createMap(raster, vmax, vmin, output, shapefile=None, title=None):
 	
 	gdata = gdal.Open(raster)
 	geo = gdata.GetGeoTransform()
-	data = gdata.ReadAsArray()
 	
 	xres = geo[1]
 	yres = geo[5]
-	
+
+	# Get "natural" block size, and total raster XY size. 
+	band = gdata.GetRasterBand(1)
+	block_sizes = band.GetBlockSize()
+	x_block_size = block_sizes[0]
+	y_block_size = block_sizes[1]
+	xsize = band.XSize
+	ysize = band.YSize
+	print('x_block_size: {0}, y_block_size: {1}.'.format(x_block_size, y_block_size))
+	print('xsize: {0}, ysize: {1}.'.format(xsize, ysize))
+
+	if (xsize < 5000):
+		data = gdata.ReadAsArray()
+	else:
+		#########################################################
+		## TODO: for big rasters such as Sentinel-1:
+		## Solution adapted from http://gis.stackexchange.com/questions/211611/python-gdal-handling-big-rasters-and-avoid-memoryerrors
+		## It seems that I still receive Memory Error 
+		y_block_size_NEW = int(round(y_block_size/200)) if y_block_size > 200 else y_block_size
+		x_block_size_NEW = int(round(x_block_size/200)) if x_block_size > 200 else x_block_size
+
+		# Create temporal raster
+		raster_srs = osr.SpatialReference()
+		raster_srs.ImportFromWkt(gdata.GetProjectionRef())
+
+		format = "GTiff"
+		driver = gdal.GetDriverByName( format )
+		# TODO: seems that I should create smaller temporal raster (?)
+		dst_ds = driver.Create("original_blocks.tif", xsize, ysize, 1, band.DataType )
+
+		dst_ds.SetGeoTransform(geo)
+		dst_ds.SetProjection(raster_srs.ExportToWkt())
+
+		blocks = 0 
+		for y in xrange(0, ysize, y_block_size_NEW):
+			#print blocks
+			if y + y_block_size_NEW < ysize:
+				rows = y_block_size_NEW
+			else:
+				rows = ysize - y
+			for x in xrange(0, xsize, x_block_size_NEW):
+				if x + x_block_size_NEW < xsize:
+					cols = x_block_size_NEW
+				else:
+					cols = xsize - x
+				# Seems that some kind of average should be calculated here
+				array = band.ReadAsArray(x, y, cols, rows)
+				try:
+					array[array>0]=1
+					#print "we got them"
+				except:
+					print "could not find them"
+				dst_ds.GetRasterBand(1).WriteArray(array, x, y)
+				del array
+				blocks += 1
+
+		data = dst_ds.ReadAsArray()
+		# TODO: Remove temporal raster?
+		#########################################################
+
 	m = Basemap(llcrnrlon=17.00,llcrnrlat=48.75,urcrnrlon=25.25,urcrnrlat=54.50)
 
 	if shapefile is not None:
