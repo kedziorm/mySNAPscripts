@@ -463,6 +463,7 @@ def getTerrainCorrected(file1, destinationPath, crs='WGS84(DD)'):
 	# "Over scenes where you have a DEM, you should use range Doppler terrain correction"
 	# Radar --> Geometric --> Terrain Correction --> Range-Doppler Terrain Correction
 	# Save parameters (saveLatLon, saveDEM) means that additional information (elevation, latLon) will be saved in output file which is not needed for further processing
+	# once you downloaded a DEM for an area it stays in the aux folder until you delete it manually. So you won't need to download it again when you process data from the same area.
 	import snappy
 	from snappy import GPF
 	from snappy import ProductIO
@@ -480,6 +481,7 @@ def getTerrainCorrected(file1, destinationPath, crs='WGS84(DD)'):
 		parameters.put('pixelSpacingInMeter', "0.0")
 		parameters.put('mapProjection', crs)
 		parameters.put('nodataValueAtSea', True)
+		# This is ONLY for saving DEM within output file - downloaded DEM will be NOT removed from .snap\AuxData\DEMs
 		parameters.put('saveDEM', False)
 		parameters.put('saveLatLon', False)
 		parameters.put('saveIncidenceAngleFromEllipsoid', False)
