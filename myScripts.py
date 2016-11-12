@@ -86,10 +86,14 @@ def newFilepath(Filepath, prefix):
 def getDateFromFileName(FileName):
 	import re
 	daty = re.findall('(\d{8})',FileName)
-	if validateDate(daty[0]):
-		return daty[0]
+	if daty == []:
+		daty = re.findall('(\d{4}.\d{2}.\d{2})',FileName)
+		return daty[0].replace(".","")
 	else:
-		return daty[1]
+		if validateDate(daty[0]):
+			return daty[0]
+		else:
+			return daty[1]
 
 def validateDate(date_text, dateFormat='%Y%m%d'):
 	import datetime
@@ -330,6 +334,29 @@ def createMap(raster, vmax, vmin, output, shapefile=None, title=None):
 	if title is not None:
 		plt.title(title)
 	plt.savefig(output) # to take less space add: bbox_inches='tight', pad_inches=0
+
+def createMAPsForFolder(path, fileMask, outputPath, fileName, whatADD=[], shapefile=None):
+	import fnmatch
+	import os
+
+	vmax = 1
+	vmin = 0
+
+	matches = []
+	for root, dirnames, filenames in os.walk(path):
+		for filename in fnmatch.filter(filenames, fileMask):
+			matches.append(os.path.join(root, filename))
+
+	for myFile in matches:
+		if whatADD != []:
+			raster = whatADD[0] + myFile + whatADD[1]
+		else:
+			raster = myFile
+
+		myDate = getDateFromFileName(myFile)
+		output = os.path.join(outputPath,myDate + fileName)
+		print('raster: {0}, output: {1}.'.format(raster, output))
+		createMap(raster, vmax, vmin, output, shapefile):
 
 def getSigma(SentinelFile):
 	# calculate sigma (radar backscatter)
