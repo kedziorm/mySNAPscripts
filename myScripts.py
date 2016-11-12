@@ -215,8 +215,13 @@ def createMap(raster, vmax, vmin, output, shapefile=None, title=None):
 	#SMOSfile = os.path.join(home,"Dropbox/Dane SMOS CATDS dla Wisły/DA_TC_MIR_CL_33/EXT-SM_RE02_MIR_CLF33A_20101231T000000_20120102T235959_272_001_7/ext-SM_RE02_MIR_CLF33A_20101231T000000_20120102T235959_272_001_7_1.DBL.nc")
 	#SMOSraster = 'NETCDF:"' + SMOSfile + '":Soil_Moisture'
 	#SentinelRaster = os.path.join(home,"Testy/calibrated_S1A_IW_GRDH_1SDV_20160512T161044_20160512T161.data/Sigma0_VH.img")
+	#SMAPfile = os.path.join(home,"SMOSSMAPAquarius/SMAP/2015.04.15/SMAP_L3_SM_AP_20150415_R13080_001.h5")
+	#SMAPraster = 'HDF5:"' + SMAPfile + '"://Soil_Moisture_Retrieval_Data/soil_moisture'
+
+	#Aquariusfile = os.path.join(home,"SMOSSMAPAquarius/Aquarius/2015.04.13/Q2015103.L3m_DAY_SOILM_V4.0_rad_sm_1deg")
+	#Aquariusraster = 'HDF5:"' + Aquariusfile + '"://l3m_data'
 	#vmin = 0
-	#vmax = 3000
+	#vmax = 1
 	#output = os.path.join(home,"testy.png")
 	#shapefile = os.path.join(home,"Dropbox/mapy/dorzecze_Wisły")
 	#createMap(SMOSraster, vmax, vmin, output, shapefile)
@@ -227,13 +232,22 @@ def createMap(raster, vmax, vmin, output, shapefile=None, title=None):
 	import matplotlib.pyplot as plt
 	import numpy as np
 	from mpl_toolkits.basemap import Basemap
+
+	# Clear plot
+	plt.clf()
+	m = None
+	cmap = None
+	im = None
+
 	
 	# By default, osgeo.gdal returns None on error, and does not normally raise informative exceptions
 	gdal.UseExceptions()
 	
 	gdata = gdal.Open(raster)
 	geo = gdata.GetGeoTransform()
-	
+
+	factor = float(gdata.GetMetadataItem('Soil_Moisture#scale_factor')) if gdata.GetMetadataItem('Soil_Moisture#scale_factor') != None else float(1)
+
 	xres = geo[1]
 	yres = geo[5]
 
@@ -249,6 +263,8 @@ def createMap(raster, vmax, vmin, output, shapefile=None, title=None):
 
 	if (xsize < 5000):
 		data = gdata.ReadAsArray()
+		data = data * factor
+		print('Whole data min: {0}, max: {1}, mean: {2}.'.format(data.min(), data.max(), data.mean()))
 	else:
 		#########################################################
 		## TODO: for big rasters such as Sentinel-1:
@@ -278,7 +294,7 @@ def createMap(raster, vmax, vmin, output, shapefile=None, title=None):
 				rows = ysize - y
 			for x in xrange(0, xsize, x_block_size_NEW):
 				if x + x_block_size_NEW < xsize:
-					cols = x_block_size_NEW
+					cols = x_block_size_NEW	
 				else:
 					cols = xsize - x
 				# Seems that some kind of average should be calculated here
@@ -292,7 +308,7 @@ def createMap(raster, vmax, vmin, output, shapefile=None, title=None):
 				del array
 				blocks += 1
 
-		data = dst_ds.ReadAsArray()
+		data = dst_ds.ReadAsArray() * factor
 		# TODO: Remove temporal raster?
 		#########################################################
 
@@ -313,7 +329,7 @@ def createMap(raster, vmax, vmin, output, shapefile=None, title=None):
 	cb = plt.colorbar( orientation='vertical', fraction=0.10, shrink=0.7)
 	if title is not None:
 		plt.title(title)
-	plt.savefig(output)
+	plt.savefig(output) # to take less space add: bbox_inches='tight', pad_inches=0
 
 def getSigma(SentinelFile):
 	# calculate sigma (radar backscatter)
