@@ -356,7 +356,7 @@ def createMAPsForFolder(path, fileMask, outputPath, fileName, whatADD=[], shapef
 		myDate = getDateFromFileName(myFile)
 		output = os.path.join(outputPath,myDate + fileName)
 		print('raster: {0}, output: {1}.'.format(raster, output))
-		createMap(raster, vmax, vmin, output, shapefile):
+		createMap(raster, vmax, vmin, output, shapefile)
 
 def getSigma(SentinelFile):
 	# calculate sigma (radar backscatter)
