@@ -93,7 +93,8 @@ def getDateFromFileName(FileName):
 		if validateDate(daty[0]):
 			return daty[0]
 		else:
-			return daty[1]
+			daty = re.findall('(\d{4}.\d{2}.\d{2})',FileName)
+			return daty[0].replace(".","")
 
 def validateDate(date_text, dateFormat='%Y%m%d'):
 	import datetime
@@ -101,7 +102,7 @@ def validateDate(date_text, dateFormat='%Y%m%d'):
 		datetime.datetime.strptime(date_text, dateFormat)
 		return True
 	except ValueError:
-		raise ValueError("Incorrect data format, should be: "+ dateFormat)
+		return False #raise ValueError("Incorrect data format, should be: "+ dateFormat)
 
 def getListOfFiles(folderPath):
 	import os
@@ -352,7 +353,7 @@ def createMAPsForFolder(path, fileMask, outputPath, fileName, whatADD=[], shapef
 			raster = whatADD[0] + myFile + whatADD[1]
 		else:
 			raster = myFile
-
+		print('Trying to get date for following file name: {0}'.format(myFile))
 		myDate = getDateFromFileName(myFile)
 		output = os.path.join(outputPath,myDate + fileName)
 		print('raster: {0}, output: {1}.'.format(raster, output))
