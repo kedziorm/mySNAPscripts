@@ -40,6 +40,11 @@ OutputType = [".dim", "BEAM-DIMAP"]
 wkt = "POLYGON((23.00 52.00,24.00 52.00,24.00 52.25,23.00 52.25,23.00 52))"
 # prefixes added to file names:
 prefixes = ["calibrated", "subset"]
+# pixel spacing
+destinationPS = 1000
+## SMOS pixel size: Pixel Size = (0.260303676128387,-0.314965192009421)
+SMOSPS = 28963
+SentinelPS = 10.0
 
 import snappy
 from snappy import ProductIO
@@ -469,15 +474,15 @@ def getSum(file1, file2, destination, band='Soil_Moisture'):
 		["+", "sum"], band)
 
 # I will use Sentinel and SMOS data
-# I will use two functions: getCoarseResProd (to 25 km resolution) or getBetterResProd (to 1 km resolution)
+# I will use two functions: getCoarseResProd (to SMOSPS resolution) or getBetterResProd (to destinationPS resolution)
 
 def getCoarseResProd(file1, destinationPath):
-	return getResampled(file1, destinationPath, resolution=25000)
+	return getResampled(file1, destinationPath, resolution=SMOSPS)
 
 def getBetterResProd(file1, destinationPath):
-	return getResampled(file1, destinationPath, resolution=1000)
+	return getResampled(file1, destinationPath, resolution=destinationPS)
 
-def getResampled(file1, destinationPath, resolution=25000):
+def getResampled(file1, destinationPath, resolution=destinationPS):
 	# TODO: this should be tested!!!
 	# More info: http://forum.step.esa.int/t/aggregation-and-interpolation-of-sentinel-products-should-i-use-snappy-or-gdal-tools/2522/3
 	import snappy
@@ -522,7 +527,7 @@ def getTerrainCorrected(file1, destinationPath, crs='WGS84(DD)'):
 		parameters.put('externalDEMApplyEGM', True)
 		parameters.put('demResamplingMethod', "BILINEAR_INTERPOLATION")
 		parameters.put('imgResamplingMethod', "BILINEAR_INTERPOLATION")
-		parameters.put('pixelSpacingInMeter', "0.0")
+		parameters.put('pixelSpacingInMeter', destinationPS)
 		parameters.put('mapProjection', crs)
 		parameters.put('nodataValueAtSea', True)
 		# This is ONLY for saving DEM within output file - downloaded DEM will be NOT removed from .snap\AuxData\DEMs
