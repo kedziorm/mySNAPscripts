@@ -203,14 +203,50 @@ def convert_bytes(num):
 			return "%3.1f %s" % (num, x)
 		num /= 1024.0
 
+def get_size(start_path = '.'):
+	# returns total size of folder in bytes
+	total_size = 0
+	for dirpath, dirnames, filenames in os.walk(start_path):
+		for f in filenames:
+			fp = os.path.join(dirpath, f)
+			total_size += os.path.getsize(fp)
+	return total_size
 
-def file_size(file_path):
+def get_whole_Product_size(file_path):
+	total_size = file_size_in_bytes(file_path)
+	if (os.path.splitext(file1)[1] == '.dim'):
+		total_size += get_size(get_data_path(file_path))
+	return convert_bytes(total_size)
+
+def get_data_path(file_path):
+	data_path = os.path.splitext(file_path)[0] + '.data'
+	if (not os.path.isdir(data_path)):
+		message = "There is NO following foler '{0}'. Please ensure where data for '{1}' file are".format(data_path, file_path)
+		writeToLog(message)
+	return data_path
+
+def file_size_in_bytes(file_path):
 	"""
 	this function will return the file size
 	"""
 	if os.path.isfile(file_path):
 		file_info = os.stat(file_path)
-		return convert_bytes(file_info.st_size)
+		return float(file_info.st_size)
+
+def file_size(file_path):
+	return convert_bytes(file_size_in_bytes(file_path))
+
+def removeProduct(file_path):
+	import shutil
+	if (os.path.exists(file1)):
+		message = "Trying to remove file '{0}' - file size {1}, whole product size {2}".format(file_path, file_size(file_path), get_whole_Product_size(file_path))
+		writeToLog(message,"info")
+		if (os.path.splitext(file_path)[1] == '.dim'):
+			dirToRem = get_data_path(file_path)
+			shutil.rmtree(dirToRem) # will delete a directory and all its contents.
+		os.remove(file_path)
+	else:
+		writeToLog("Trying to remove non-existing file: {0}".format(file_path),"warning")
 
 def createMap(raster, vmax, vmin, output, shapefile=None, title=None):
 	###################################################################
