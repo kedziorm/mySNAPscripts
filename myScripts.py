@@ -216,6 +216,9 @@ def get_whole_Product_size(file_path):
 	total_size = file_size_in_bytes(file_path)
 	if (os.path.splitext(file_path)[1] == '.dim'):
 		total_size += get_size(get_data_path(file_path))
+	if (os.path.splitext(file_path)[1] == '.nc'):
+		sFile =(os.path.splitext(file_path)[0]).replace("_1.DBL","").replace("ext-","") + '.HDR'
+		total_size += get_size(sFile)
 	return convert_bytes(total_size)
 
 def get_data_path(file_path):
@@ -232,6 +235,8 @@ def file_size_in_bytes(file_path):
 	if os.path.isfile(file_path):
 		file_info = os.stat(file_path)
 		return float(file_info.st_size)
+	else:
+		return float(0)
 
 def file_size(file_path):
 	return convert_bytes(file_size_in_bytes(file_path))
@@ -239,7 +244,7 @@ def file_size(file_path):
 def removeProduct(file_path):
 	import shutil
 	if (os.path.exists(file_path)):
-		message = "Trying to remove file '{0}' - file size {1}, whole product size {2}".format(file_path, file_size(file_path), get_whole_Product_size(file_path))
+		message = "Trying to remove file '{0}' - file size {1}, whole product size \t {2}".format(os.path.basename(file_path), file_size(file_path), get_whole_Product_size(file_path))
 		writeToLog(message,"info")
 		if (os.path.splitext(file_path)[1] == '.dim'):
 			dirToRem = get_data_path(file_path)
@@ -479,8 +484,19 @@ def getOperation(file1, file2, destination, operation, band='Soil_Moisture'):
 	targetBand1 = BandDescriptor()
 	targetBand1.name = operation[1]
 	targetBand1.type = 'float32'
-	##  index is zero-based, so index 1 refers to the second product
-	expr = "".join([band, ' ', operation[0], ' $sourceProduct.1.', band])
+
+	if (getProductInfo(file1) == getProductInfo(file2)):
+		##  index is zero-based, so index 1 refers to the second product
+		expr = "".join([band, ' ', operation[0], ' $sourceProduct.1.', band])
+	else:
+		# in this case we need collocated product
+		# first remove old products:
+		for prod in products:
+			prod.dispose()
+		collocated = getCollocated(file1, file2, destination)
+		products = [snappy.ProductIO.readProduct(collocated)]
+		# Sample expression: 'Sigma0_VH_M - Sigma0_VH_S'
+		expr = "{0}_M {1} {0}_S".format(band, operation[0])
 	targetBand1.expression = expr
 
 	targetBands = jpy.array(
@@ -616,12 +632,13 @@ def getTerrainCorrected(file1, destinationPath, crs='WGS84(DD)'):
 	from snappy import ProductIO
 	if (not os.path.exists(destinationPath)):
 		product = snappy.ProductIO.readProduct(file1)
-
+		
+		DEM = "SRTM 3Sec"
 		HashMap = jpy.get_type('java.util.HashMap')
 		GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
-
+		writeToLog("Terrain correction using {0} file will use pixelSpacingInMeter: {1}".format(DEM,destinationPS),"info")
 		parameters = HashMap()
-		parameters.put('demName', "SRTM 3Sec")
+		parameters.put('demName', DEM)
 		parameters.put('externalDEMApplyEGM', True)
 		parameters.put('demResamplingMethod', "BILINEAR_INTERPOLATION")
 		parameters.put('imgResamplingMethod', "BILINEAR_INTERPOLATION")
