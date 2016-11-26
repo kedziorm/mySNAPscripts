@@ -46,7 +46,7 @@ wkt = "POLYGON((23.00 52.00,24.00 52.00,24.00 52.25,23.00 52.25,23.00 52))"
 # prefixes added to file names:
 prefixes = ["calibrated", "subset"]
 # pixel spacing
-destinationPS = 1000
+destinationPS = float(1000)
 ## SMOS pixel size: Pixel Size = (0.260303676128387,-0.314965192009421)
 SMOSPS = 28963
 SentinelPS = 10.0
@@ -177,12 +177,14 @@ def getNewSMOSfileName(SMOSfile1, SMOSfile2, destination, operation):
 
 def writeToLog(message, messageType='ERROR'):
 	import logging,os
+	log_path = os.path.join(os.path.expanduser("~"),'Dropbox/DyzagregacjaSMOS/logi.log')
 	logger = logging.getLogger('Dyzagregacja')
-	hdlr = logging.FileHandler(os.path.join(os.path.expanduser("~"),'Dropbox/DyzagregacjaSMOS/logi.log'))
+	hdlr = logging.FileHandler(log_path)
 	formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 	hdlr.setFormatter(formatter)
 	logger.addHandler(hdlr)
 	logger.setLevel(logging.INFO)
+	print("Writing to log file: '{0}'".format(log_path))
 	if (messageType == 'ERROR'):
 		logger.error(message)
 	elif (messageType == 'WARNING'):
@@ -532,7 +534,7 @@ def getTerrainCorrected(file1, destinationPath, crs='WGS84(DD)'):
 		parameters.put('externalDEMApplyEGM', True)
 		parameters.put('demResamplingMethod', "BILINEAR_INTERPOLATION")
 		parameters.put('imgResamplingMethod', "BILINEAR_INTERPOLATION")
-		parameters.put('pixelSpacingInMeter', destinationPS)
+		parameters.put('pixelSpacingInMeter', float(destinationPS))
 		parameters.put('mapProjection', crs)
 		parameters.put('nodataValueAtSea', True)
 		# This is ONLY for saving DEM within output file - downloaded DEM will be NOT removed from .snap\AuxData\DEMs
