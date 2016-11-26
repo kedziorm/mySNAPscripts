@@ -214,7 +214,7 @@ def get_size(start_path = '.'):
 
 def get_whole_Product_size(file_path):
 	total_size = file_size_in_bytes(file_path)
-	if (os.path.splitext(file1)[1] == '.dim'):
+	if (os.path.splitext(file_path)[1] == '.dim'):
 		total_size += get_size(get_data_path(file_path))
 	return convert_bytes(total_size)
 
@@ -238,7 +238,7 @@ def file_size(file_path):
 
 def removeProduct(file_path):
 	import shutil
-	if (os.path.exists(file1)):
+	if (os.path.exists(file_path)):
 		message = "Trying to remove file '{0}' - file size {1}, whole product size {2}".format(file_path, file_size(file_path), get_whole_Product_size(file_path))
 		writeToLog(message,"info")
 		if (os.path.splitext(file_path)[1] == '.dim'):
