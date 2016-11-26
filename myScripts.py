@@ -520,10 +520,10 @@ def getSum(file1, file2, destination, band='Soil_Moisture'):
 # I will use two functions: getCoarseResProd (to SMOSPS resolution) or getBetterResProd (to destinationPS resolution)
 
 def getCoarseResProd(file1, destinationPath):
-	return getResampled(file1, destinationPath, resolution=SMOSPS)
+	return getResampled(file1, destinationPath, resolution=float(SMOSPS))
 
 def getBetterResProd(file1, destinationPath):
-	return getResampled(file1, destinationPath, resolution=destinationPS)
+	return getResampled(file1, destinationPath, resolution=float(destinationPS))
 
 def getResampled(file1, destinationPath, resolution=destinationPS):
 	# TODO: this should be tested!!!
