@@ -535,22 +535,23 @@ def getCollocated(file1, file2, destination):
 		GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
 
 		parameters = HashMap()
-		# ISSUE: RuntimeError: org.esa.snap.core.gpf.OperatorException: Operator 'CollocateOp': Mandatory source product (field 'masterProduct') not set.
-		parameters.put('masterProduct', products[0])
-		parameters.put('slaveProduct', products[1])
-		parameters.put('master', products[0])
-		parameters.put('slave', products[1])
+		sourceProducts = HashMap()
+		sourceProducts.put("master", products[0])
+		sourceProducts.put("slave", products[1])
 		parameters.put('renameMasterComponents', True)
 		parameters.put('renameSlaveComponents', True)
 		parameters.put('masterComponentPattern', "${ORIGINAL_NAME}_M")
 		parameters.put('slaveComponentPattern', "${ORIGINAL_NAME}_S")
 		parameters.put('resamplingType', "NEAREST_NEIGHBOUR")
 		
-		result = GPF.createProduct('Collocate', parameters, products)
+		result = GPF.createProduct('Collocate', parameters, sourceProducts)
 		ProductIO.writeProduct(result,  destinationPath, 'BEAM-DIMAP')
-
-		products.dispose()
-		writeToLog("Collocated product: {0}".format(getProductInfo(file1)),"info")
+		
+		for prod in products:
+			prod.dispose()
+		writeToLog("Collocated product saved as '{0}' \t {1}".format(os.path.basename(destinationPath), get_whole_Product_size(destinationPath)),"info")
+		writeToLog("Input files: {0}, {1}".format(getProductInfo(file1),getProductInfo(file2)),"info")
+		writeToLog("Collocated product: {0}".format(getProductInfo(destinationPath)),"info")
 	else:
 		print("It seems that destination file already exists. Bye!")
 	return destinationPath
