@@ -1,0 +1,54 @@
+This is result of typing following command:
+
+~/snap/bin/gpt -h Collocate
+
+You can get information about any SNAP operator using this command
+
+==================================================================
+
+Usage:
+  gpt Collocate [options] 
+
+Description:
+  Collocates two products based on their geo-codings.
+
+
+Source Options:
+  -Smaster=<file>    The source product which serves as master.
+                     This is a mandatory source.
+  -Sslave=<file>     The source product which serves as slave.
+                     This is a mandatory source.
+
+Parameter Options:
+  -PmasterComponentPattern=<string>     The text pattern to be used when renaming master components.
+                                        Default value is '${ORIGINAL_NAME}_M'.
+  -PrenameMasterComponents=<boolean>    Whether or not components of the master product shall be renamed in the target product.
+                                        Default value is 'true'.
+  -PrenameSlaveComponents=<boolean>     Whether or not components of the slave product shall be renamed in the target product.
+                                        Default value is 'true'.
+  -PresamplingType=<resamplingType>     The method to be used when resampling the slave grid onto the master grid.
+                                        Default value is 'NEAREST_NEIGHBOUR'.
+  -PslaveComponentPattern=<string>      The text pattern to be used when renaming slave components.
+                                        Default value is '${ORIGINAL_NAME}_S'.
+  -PtargetProductType=<string>          The product type string for the target product (informal)
+                                        Default value is 'COLLOCATED'.
+
+Graph XML Format:
+  <graph id="someGraphId">
+    <version>1.0</version>
+    <node id="someNodeId">
+      <operator>Collocate</operator>
+      <sources>
+        <master>${master}</master>
+        <slave>${slave}</slave>
+      </sources>
+      <parameters>
+        <targetProductType>string</targetProductType>
+        <renameMasterComponents>boolean</renameMasterComponents>
+        <renameSlaveComponents>boolean</renameSlaveComponents>
+        <masterComponentPattern>string</masterComponentPattern>
+        <slaveComponentPattern>string</slaveComponentPattern>
+        <resamplingType>resamplingType</resamplingType>
+      </parameters>
+    </node>
+  </graph>

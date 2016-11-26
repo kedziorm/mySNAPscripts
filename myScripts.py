@@ -158,7 +158,7 @@ def unpackAllAndRemoveAllArchives(folderPath,extension="tgz"):
 def getDateFromSMOSfileName(SMOSfile1):
 	import re
 	import os
-	result = re.findall("CLF3.._(\d{8}).*", os.path.basename(SMOSfile1))
+	result = re.findall("(20\d{6}).*", os.path.basename(SMOSfile1))
 	if (len(result) != 1):
 		print(("Unable to get date from SMOS file name: "
 		+ os.path.basename(SMOSfile1)))
@@ -167,12 +167,12 @@ def getDateFromSMOSfileName(SMOSfile1):
 		return result[0]
 
 
-def getNewSMOSfileName(SMOSfile1, SMOSfile2, destination, operation):
+def getNewFileName(SMOSfile1, SMOSfile2, destination, operation, band, filetype):
 	import os
 	date1 = getDateFromSMOSfileName(SMOSfile1)
 	date2 = getDateFromSMOSfileName(SMOSfile2)
 	return os.path.join(destination,
-	"_".join(["SMOS", date1, operation, date2]) + OutputType[0])
+	"_".join([filetype, date1, operation, date2,band]) + OutputType[0])
 
 
 def writeToLog(message, messageType='ERROR'):
@@ -493,13 +493,67 @@ def getOperation(file1, file2, destination, operation, band='Soil_Moisture'):
 	## More at http://forum.step.esa.int/t/calculate-the-difference-or-division
 	## -between-bands-in-two-different-products
 	result = GPF.createProduct('BandMaths', parameters, products)
-
-	resultFile = getNewSMOSfileName(file1, file2, destination, operation[1])
+	
+	# TODO: this should be handled in smarter way!!!
+	filetype = os.path.basename(file1).split("_")[3]
+	resultFile = getNewFileName(file1, file2, destination, operation[1], band, filetype)
 	ProductIO.writeProduct(result, resultFile, OutputType[1])
 	for prod in products:
 		prod.dispose()
 	result.dispose()
 	return resultFile
+
+def getProductInfo(file1):
+	import snappy
+	from snappy import GPF
+	from snappy import ProductIO
+
+	prod = snappy.ProductIO.readProduct(file1)
+	bandNames=''
+	for i in prod.getBandNames():
+		bandNames += "'{0}'".format(i)
+	firstBand=prod.getBands()[0]
+	width = firstBand.getRasterWidth()
+	height = firstBand.getRasterHeight()
+	prod.dispose()
+	return "Bands: {0}, width = {1}, height = {2}".format(bandNames,width, height)
+
+
+def getCollocated(file1, file2, destination):
+	import snappy
+	from snappy import GPF
+	from snappy import ProductIO
+
+	# TODO: this should be handled in smarter way!!!
+	filetype = os.path.basename(file1).split("_")[3]
+	destinationPath = getNewFileName(file1, file2, destination, "collocation", "", filetype)
+
+	if (not os.path.exists(destinationPath)):
+		products = [snappy.ProductIO.readProduct(file1), snappy.ProductIO.readProduct(file2)]
+
+		HashMap = jpy.get_type('java.util.HashMap')
+		GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
+
+		parameters = HashMap()
+		# ISSUE: RuntimeError: org.esa.snap.core.gpf.OperatorException: Operator 'CollocateOp': Mandatory source product (field 'masterProduct') not set.
+		parameters.put('masterProduct', products[0])
+		parameters.put('slaveProduct', products[1])
+		parameters.put('master', products[0])
+		parameters.put('slave', products[1])
+		parameters.put('renameMasterComponents', True)
+		parameters.put('renameSlaveComponents', True)
+		parameters.put('masterComponentPattern', "${ORIGINAL_NAME}_M")
+		parameters.put('slaveComponentPattern', "${ORIGINAL_NAME}_S")
+		parameters.put('resamplingType', "NEAREST_NEIGHBOUR")
+		
+		result = GPF.createProduct('Collocate', parameters, products)
+		ProductIO.writeProduct(result,  destinationPath, 'BEAM-DIMAP')
+
+		products.dispose()
+		writeToLog("Collocated product: {0}".format(getProductInfo(file1)),"info")
+	else:
+		print("It seems that destination file already exists. Bye!")
+	return destinationPath
 
 
 def getDiff(file1, file2, destination, band='Soil_Moisture'):
