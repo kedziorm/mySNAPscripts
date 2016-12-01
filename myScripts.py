@@ -534,6 +534,32 @@ def getProductInfo(file1):
 	prod.dispose()
 	return "Bands: {0}, width = {1}, height = {2}".format(bandNames,width, height)
 
+def getBandFromProduct(file1, bandNumber):
+	import snappy
+	from snappy import GPF
+	from snappy import ProductIO
+	prod = snappy.ProductIO.readProduct(file1)
+	
+	if (len(prod.getBands()) >= bandNumber):
+		Band = prod.getBands()[bandNumber]
+	else:
+		print("Illegal band number")
+		Band = None
+	# If 'prod.dispose()' line (below) is not commented, I receive an error message when usign this function in getBandStats
+	# RuntimeError: java.lang.IllegalArgumentException: The name to be externalized must at least contain one character
+	#prod.dispose()
+	return Band
+
+def getBandStats(file1, bandNumber = 0):
+	Band = getBandFromProduct(file1, bandNumber)
+	stats = Band.getStx()
+	message = "Min: {0}, max: {1}, average: {2} std dev: {3} CV: {4}".format(stats.getMinimum(), stats.getMaximum(), stats.getMedian(), stats.getStandardDeviation(), stats.getCoefficientOfVariation())
+	return message
+
+def getBandHistogram(file1, bandNumber = 0):
+	Band = getBandFromProduct(file1, bandNumber)
+	stats = Band.getStx()
+	return stats.getHistogram()
 
 def getCollocated(file1, file2, destination):
 	import snappy
