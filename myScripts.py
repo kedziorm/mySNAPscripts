@@ -62,6 +62,7 @@ home = expanduser("~")
 SentinelPath = os.path.join(home, "Testy")
 SentinelFile = os.path.join(SentinelPath,
 "S1A_IW_GRDH_1SDV_20160512T161044_20160512T161109_011228_010FA8_C584.zip")
+smallFile = os.path.join(SentinelPath,"CLF33A_20160514_collocation_20160517_.data/Soil_Moisture_M.img")
 
 
 def getAllowedFormats():
@@ -481,7 +482,7 @@ def getOperation(file1, file2, destination, operation, band='Soil_Moisture'):
 	BandDescriptor = jpy.get_type(
 	'org.esa.snap.core.gpf.common.BandMathsOp$BandDescriptor')
 
-	targetBand1 = BandDescriptor()
+	targ1 = BandDescriptor()
 	targetBand1.name = operation[1]
 	targetBand1.type = 'float32'
 
@@ -560,6 +561,30 @@ def getBandHistogram(file1, bandNumber = 0):
 	Band = getBandFromProduct(file1, bandNumber)
 	stats = Band.getStx()
 	return stats.getHistogram()
+
+def saveHistogramForFile(file1, title="This is histogram"):
+	# LIMITATIONS: This is *not* working with .dim files
+	from osgeo import gdal
+	import numpy as np
+	import matplotlib.mlab as mlab
+	import matplotlib.pyplot as plt
+
+	dataset = gdal.Open(file1)
+	band = dataset.GetRasterBand(1)
+	# TODO: Read scaling factors from file
+
+	data = np.squeeze(band.ReadAsArray())
+
+	# the histogram of the data
+	n, bins, patches = plt.hist(data) #, 10, normed=1, facecolor='green', alpha=0.75)
+
+	plt.xlabel('Values')
+	plt.ylabel('Probability')
+	plt.title(title)
+	plt.grid(True)
+	newFileName = file1 + "_hist.png"
+	plt.savefig(newFileName)
+
 
 def getCollocated(file1, file2, destination):
 	import snappy
