@@ -95,7 +95,10 @@ def getAllowedFormats():
 
 
 def newFilepath(Filepath, prefix):
-	return os.path.join(os.path.dirname(Filepath),
+	directory = os.path.join(os.path.dirname(Filepath),prefix)
+	if not os.path.exists(directory):
+		os.makedirs(directory)
+	return os.path.join(directory,
 	"_".join([prefix, os.path.basename(Filepath)[0:45]]) + OutputType[0])
 
 def getDateFromFileName(FileName):
@@ -176,7 +179,10 @@ def getNewFileName(SMOSfile1, SMOSfile2, destination, operation, band, filetype)
 	import os
 	date1 = getDateFromSMOSfileName(SMOSfile1)
 	date2 = getDateFromSMOSfileName(SMOSfile2)
-	return os.path.join(destination,
+	directory = os.path.join(destination,operation)
+	if not os.path.exists(directory):
+		os.makedirs(directory)
+	return os.path.join(directory,
 	"_".join([filetype, date1, operation, date2,band]) + OutputType[0])
 
 
