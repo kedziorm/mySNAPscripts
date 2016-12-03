@@ -94,12 +94,13 @@ def getAllowedFormats():
 	print(("Allowed formats to read: " + readerFormats))
 
 
-def newFilepath(Filepath, prefix):
+def newFilepath(Filepath, prefix, limited=True):
 	directory = os.path.join(os.path.dirname(Filepath),prefix)
 	if not os.path.exists(directory):
 		os.makedirs(directory)
+	baseName = os.path.basename(Filepath)[0:45] if limited else os.path.splitext(os.path.basename(Filepath))[0]
 	return os.path.join(directory,
-	"_".join([prefix, os.path.basename(Filepath)[0:45]]) + OutputType[0])
+	"_".join([prefix, baseName]) + OutputType[0])
 
 def getDateFromFileName(FileName):
 	import re
@@ -726,10 +727,12 @@ def getSum(file1, file2, destination, band=['Soil_Moisture','Soil_Moisture']):
 # I will use Sentinel and SMOS data
 # I will use two functions: getCoarseResProd (to SMOSPS resolution) or getBetterResProd (to destinationPS resolution)
 
-def getCoarseResProd(file1, destinationPath):
+def getCoarseResProd(file1, destination):
+	destinationPath = newFilepath(file1, "aggregated")
 	return getResampled(file1, destinationPath, resolution=float(SMOSPS))
 
-def getBetterResProd(file1, destinationPath):
+def getBetterResProd(file1, destination):
+	destinationPath = newFilepath(file1, "interpolated")
 	return getResampled(file1, destinationPath, resolution=float(destinationPS))
 
 def getResampled(file1, destinationPath, resolution=destinationPS):
@@ -748,7 +751,9 @@ def getResampled(file1, destinationPath, resolution=destinationPS):
 		parameters.put('downsampling', "Mean")
 		# As I checked in SNAP desktop, 'targetResolution' option is sometimes not available
 		# and I need to use targetHeight and targetWidth instead
-		parameters.put('targetResolution', resolution)
+		# RuntimeError: org.esa.snap.core.gpf.OperatorException: Operator 'ResamplingOp': Value for 'Target resolution' must be of type 'Integer'.
+		# So I convert it to Integer
+		parameters.put('targetResolution', int(resolution))
 		result = GPF.createProduct('Resample', parameters, product)
 		ProductIO.writeProduct(result,  destinationPath, 'BEAM-DIMAP')
 
