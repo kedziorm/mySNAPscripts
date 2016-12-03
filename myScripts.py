@@ -473,7 +473,7 @@ def getSubset(SentinelFile):
 	return newFile
 
 
-def getOperation(file1, file2, destination, operation, band='Soil_Moisture'):
+def getOperation(file1, file2, destination, operation, band=['Soil_Moisture','Soil_Moisture']):
 	import snappy
 	from snappy import GPF
 	from snappy import ProductIO
@@ -481,10 +481,12 @@ def getOperation(file1, file2, destination, operation, band='Soil_Moisture'):
 	products = [snappy.ProductIO.readProduct(file1),
 	snappy.ProductIO.readProduct(file2)]
 	#verify if products contain selected band
-	for prod in products:
-		if not (band in prod.getBandNames()):
-			print((band + " not in the " + prod.getName() + " Exiting"))
-			return
+	if not (band[0] in products[0].getBandNames()):
+		print((band[0] + " not in the " + products[0].getName() + " Exiting"))
+		return
+	if not (band[1] in products[1].getBandNames()):
+		print((band[1] + " not in the " + products[1].getName() + " Exiting"))
+		return
 
 	GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
 
@@ -492,13 +494,13 @@ def getOperation(file1, file2, destination, operation, band='Soil_Moisture'):
 	BandDescriptor = jpy.get_type(
 	'org.esa.snap.core.gpf.common.BandMathsOp$BandDescriptor')
 
-	targ1 = BandDescriptor()
+	targetBand1 = BandDescriptor()
 	targetBand1.name = operation[1]
 	targetBand1.type = 'float32'
 
 	if (getProductInfo(file1) == getProductInfo(file2)):
 		##  index is zero-based, so index 1 refers to the second product
-		expr = "".join([band, ' ', operation[0], ' $sourceProduct.1.', band])
+		expr = "".join([band[0], ' ', operation[0], ' $sourceProduct.1.', band[1]])
 	else:
 		# in this case we need collocated product
 		# first remove old products:
@@ -507,7 +509,7 @@ def getOperation(file1, file2, destination, operation, band='Soil_Moisture'):
 		collocated = getCollocated(file1, file2, destination)
 		products = [snappy.ProductIO.readProduct(collocated)]
 		# Sample expression: 'Sigma0_VH_M - Sigma0_VH_S'
-		expr = "{0}_M {1} {0}_S".format(band, operation[0])
+		expr = "{0}_M {1} {2}_S".format(band[0], operation[0], band[1])
 	targetBand1.expression = expr
 
 	targetBands = jpy.array(
@@ -523,7 +525,7 @@ def getOperation(file1, file2, destination, operation, band='Soil_Moisture'):
 	
 	# TODO: this should be handled in smarter way!!!
 	filetype = os.path.basename(file1).split("_")[3]
-	resultFile = getNewFileName(file1, file2, destination, operation[1], band, filetype)
+	resultFile = getNewFileName(file1, file2, destination, operation[1], band[0], filetype)
 	ProductIO.writeProduct(result, resultFile, OutputType[1])
 	for prod in products:
 		prod.dispose()
@@ -662,7 +664,7 @@ def saveHistogramForFile(file1, xtitle="Values", ytitle="Probability", title="Ba
 	plt.title(title)
 	plt.grid(True)
 	NewFileName = os.path.split(os.path.split(file1)[0])[1] + os.path.basename(file1) + "_hist_" + suffix + ".png"
-	directory = os.path.join(os.path.split(os.path.split(file1)[0])[0],"histograms")
+	directory = os.path.join(SentinelPath,"histograms")
 	if not os.path.exists(directory):
 		os.makedirs(directory)
 	plt.savefig(os.path.join(directory,NewFileName))
@@ -707,17 +709,17 @@ def getCollocated(file1, file2, destination):
 	return destinationPath
 
 
-def getDiff(file1, file2, destination, band='Soil_Moisture'):
+def getDiff(file1, file2, destination, band=['Soil_Moisture','Soil_Moisture']):
 	# TODO: test output from SNAP desktop and from this file
 	return getOperation(file1, file2, destination,
 		["-", "diff"], band)
 
 
-def getDivision(file1, file2, destination, band='Soil_Moisture'):
+def getDivision(file1, file2, destination, band=['Soil_Moisture','Soil_Moisture']):
 	return getOperation(file1, file2, destination,
 		["/", "div"], band)
 
-def getSum(file1, file2, destination, band='Soil_Moisture'):
+def getSum(file1, file2, destination, band=['Soil_Moisture','Soil_Moisture']):
 	return getOperation(file1, file2, destination,
 		["+", "sum"], band)
 
