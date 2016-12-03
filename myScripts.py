@@ -26,6 +26,9 @@
 #############################################################
 
 import os
+import sys
+reload(sys)  
+sys.setdefaultencoding('utf8')
 
 # Set below-normal priority, so that computer remain responsive during computations
 # You can check how to do that on non-Unix like machines at:
@@ -63,6 +66,7 @@ SentinelPath = os.path.join(home, "Testy")
 SentinelFile = os.path.join(SentinelPath,
 "S1A_IW_GRDH_1SDV_20160512T161044_20160512T161109_011228_010FA8_C584.zip")
 smallFile = os.path.join(SentinelPath,"CLF33A_20160514_collocation_20160517_.data/Soil_Moisture_M.img")
+sampleDimFile = os.path.join(SentinelPath,"CLF33A_20160514_collocation_20160517_.dim")
 
 
 def getAllowedFormats():
@@ -583,8 +587,51 @@ def getBandHistogram(file1, bandNumber = 0):
 	stats = Band.getStx()
 	return stats.getHistogram()
 
-def saveHistogramForFile(file1, title="This is histogram"):
+def get_envi_header_dict(hdr):
+	# Function from: http://gis.stackexchange.com/questions/48618/how-to-read-write-envi-metadata-using-gdal
+	import re
+	#Get all "key = {val}" type matches
+	regex=re.compile(r'^(.+?)\s*=\s*({\s*.*?\n*.*?})$',re.M|re.I)
+	matches=regex.findall(hdr)
+
+	#Remove them from the header
+	subhdr=regex.sub('',hdr)
+
+	#Get all "key = val" type matches
+	regex=re.compile(r'^(.+?)\s*=\s*(.*?)$',re.M|re.I)
+	matches.extend(regex.findall(subhdr))
+
+	return dict(matches)
+
+def read_envi_hdr(hdr_file):
+	if os.path.exists(hdr_file):
+		with open(hdr_file, 'r') as content_file:
+			content = content_file.read()
+	return get_envi_header_dict(content)
+
+def getMetadataValueFromHdr(hdr_file, HDRkey = 'data gain values'):
+	metadata = read_envi_hdr(hdr_file)
+	if metadata:
+		value = metadata.get(HDRkey)
+		return value.replace("{","").replace("}","").strip() if value else None
+	else:
+		return None
+
+def saveHistForFiles(file1, xtitle="Values", ytitle="Probability", title="Band: ", suffix="eng"):
+	# This just executes 'saveHistogramForFile' function below
+	import glob
+	if (os.path.splitext(file1)[1] == '.dim'):
+		searchIn = os.path.join(get_data_path(file1),"*.img")
+		for myFile in glob.glob(searchIn):
+			saveHistogramForFile(myFile, xtitle, ytitle, title, suffix)
+	else:
+		saveHistogramForFile(file1, xtitle, ytitle, title, suffix)
+
+def saveHistogramForFile(file1, xtitle="Values", ytitle="Probability", title="Band: ", suffix="eng"):
 	# LIMITATIONS: This is *not* working with .dim files
+	# Sample usage:
+	# saveHistogramForFile(smallFile)
+	# saveHistogramForFile(smallFile, "Wartości", "Prawdopodobieństwo", "Pasmo: ", "pl")
 	from osgeo import gdal
 	import numpy as np
 	import matplotlib.mlab as mlab
@@ -592,19 +639,28 @@ def saveHistogramForFile(file1, title="This is histogram"):
 
 	dataset = gdal.Open(file1)
 	band = dataset.GetRasterBand(1)
-	# TODO: Read scaling factors from file
-
 	data = np.squeeze(band.ReadAsArray())
 
-	# the histogram of the data
-	n, bins, patches = plt.hist(data) #, 10, normed=1, facecolor='green', alpha=0.75)
+	if (os.path.splitext(file1)[1] == '.img'):
+		hdrFile = os.path.splitext(file1)[0] + ".hdr"
+		value = getMetadataValueFromHdr(hdrFile, 'data gain values')
+		data = data * float(value) if value else data
+		bandName = getMetadataValueFromHdr(hdrFile, 'band names')
+		title = title + bandName if bandName else title
 
-	plt.xlabel('Values')
-	plt.ylabel('Probability')
+	# the histogram of the data
+	n, bins, patches = plt.hist(data, facecolor='green') #, 10, normed=1, facecolor='green', alpha=0.75)
+
+	plt.xlabel(xtitle)
+	plt.ylabel(ytitle)
 	plt.title(title)
 	plt.grid(True)
-	newFileName = file1 + "_hist.png"
-	plt.savefig(newFileName)
+	NewFileName = os.path.split(os.path.split(file1)[0])[1] + os.path.basename(file1) + "_hist_" + suffix + ".png"
+	directory = os.path.join(os.path.split(os.path.split(file1)[0])[0],"histograms")
+	if not os.path.exists(directory):
+		os.makedirs(directory)
+	plt.savefig(os.path.join(directory,NewFileName))
+	plt.clf()
 
 
 def getCollocated(file1, file2, destination):
