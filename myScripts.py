@@ -46,7 +46,7 @@ wkt = "POLYGON((23.00 52.00,24.00 52.00,24.00 52.25,23.00 52.25,23.00 52))"
 # prefixes added to file names:
 prefixes = ["calibrated", "subset"]
 # pixel spacing
-destinationPS = float(1000)
+destinationPS = float(500)
 ## SMOS pixel size: Pixel Size = (0.260303676128387,-0.314965192009421)
 SMOSPS = 28963
 SentinelPS = 10.0
