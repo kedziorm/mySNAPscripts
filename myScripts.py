@@ -539,6 +539,7 @@ def getBandFromProduct(file1, bandNumber):
 	import snappy
 	from snappy import GPF
 	from snappy import ProductIO
+	# TODO: When I try to read 'Soil_Moisture_M.img' directly (not hdr file), I receive a NoneType object
 	prod = snappy.ProductIO.readProduct(file1)
 	
 	if (len(prod.getBands()) >= bandNumber):
@@ -551,11 +552,31 @@ def getBandFromProduct(file1, bandNumber):
 	#prod.dispose()
 	return Band
 
-def getBandStats(file1, bandNumber = 0):
-	Band = getBandFromProduct(file1, bandNumber)
-	stats = Band.getStx()
-	message = "Min: {0}, max: {1}, average: {2} std dev: {3} CV: {4}".format(stats.getMinimum(), stats.getMaximum(), stats.getMedian(), stats.getStandardDeviation(), stats.getCoefficientOfVariation())
-	return message
+def getAllBandsStats(file1, pathToSaveStats=None):
+	import snappy
+	# TODO: When I try to read 'Soil_Moisture_M.img' directly (not hdr file), I receive a NoneType object
+	prod = snappy.ProductIO.readProduct(file1)
+	if (not prod):
+		errormsg = "getAllBandsStats - Error when reading '{0}' file".format(file1)
+		print(errormsg)
+		return errormsg
+	numberOfBands = len(prod.getBands())
+	prodName = prod.getName()
+	fileName = prod.getFileLocation().getName()
+	if (not pathToSaveStats):
+		pathToSaveStats = os.path.join(SentinelPath,"BandStatistics.csv")
+	####
+	for bandNumber in range(numberOfBands):
+		Band = prod.getBands()[bandNumber]
+		stats = Band.getStx()
+		message = "FileName,Product,BandName,Min,Max,Avg,StdDev,CV:\t" + ("\t".join(["{0}","{1}","{2}","{3}","{4}","{5}","{6}","{7}"])).format(fileName, prodName, Band.getName(), stats.getMinimum(), stats.getMaximum(), stats.getMedian(), stats.getStandardDeviation(), stats.getCoefficientOfVariation())
+		with open(pathToSaveStats, "a") as myfile:
+			myfile.write(message)
+			myfile.write("\n")
+	###
+	print("Stats saved in '{0}'".format(pathToSaveStats))
+	prod.dispose()
+	return "Statistics for all '{0}' bands of product '{1}' has been saved in '{2}'".format(numberOfBands,prodName,pathToSaveStats)
 
 def getBandHistogram(file1, bandNumber = 0):
 	Band = getBandFromProduct(file1, bandNumber)
