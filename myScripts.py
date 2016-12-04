@@ -640,17 +640,17 @@ def getMetadataValueFromHdr(hdr_file, HDRkey = 'data gain values'):
 	else:
 		return None
 
-def saveHistForFiles(file1, xtitle="Values", ytitle="Probability", title="Band: ", suffix="eng"):
+def saveHistForFiles(file1, xtitle="Values", ytitle="Probability", title="Band: ", suffix="eng",directorySuffix = None):
 	# This just executes 'saveHistogramForFile' function below
 	import glob
 	if (os.path.splitext(file1)[1] == '.dim'):
 		searchIn = os.path.join(get_data_path(file1),"*.img")
 		for myFile in glob.glob(searchIn):
-			saveHistogramForFile(myFile, xtitle, ytitle, title, suffix)
+			saveHistogramForFile(myFile, xtitle, ytitle, title, suffix,directorySuffix)
 	else:
-		saveHistogramForFile(file1, xtitle, ytitle, title, suffix)
+		saveHistogramForFile(file1, xtitle, ytitle, title, suffix,directorySuffix)
 
-def saveHistogramForFile(file1, xtitle="Values", ytitle="Probability", title=None, suffix="eng"):
+def saveHistogramForFile(file1, xtitle="Values", ytitle="Probability", title=None, suffix="eng",directorySuffix = None):
 	# LIMITATIONS: This is *not* working with .dim files
 	# Sample usage:
 	# saveHistogramForFile(smallFile)
@@ -693,6 +693,8 @@ def saveHistogramForFile(file1, xtitle="Values", ytitle="Probability", title=Non
 	plt.grid(True)
 	NewFileName = os.path.split(os.path.split(file1)[0])[1] + os.path.basename(file1) + "_hist_" + suffix + ".svg"
 	directory = os.path.join(SentinelPath,"histograms")
+	if (not directorySuffix == None):
+		directory = os.path.join(directory,directorySuffix)
 	if not os.path.exists(directory):
 		os.makedirs(directory)
 	NewFullPath = os.path.join(directory,NewFileName)
