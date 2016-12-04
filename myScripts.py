@@ -684,7 +684,7 @@ def saveHistogramForFile(file1, xtitle="Values", ytitle="Probability", title=Non
 
 	# TODO: data (scaling) factors should be handled in separate method
 	if (file1.startswith("NETCDF")):
-		factor = float(gdata.GetMetadataItem('Soil_Moisture#scale_factor')) if gdata.GetMetadataItem('Soil_Moisture#scale_factor') != None else float(1)
+		factor = float(dataset.GetMetadataItem('Soil_Moisture#scale_factor')) if dataset.GetMetadataItem('Soil_Moisture#scale_factor') != None else float(1)
 		data = data * factor
 
 	# the histogram of the data
