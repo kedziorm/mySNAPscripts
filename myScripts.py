@@ -176,10 +176,14 @@ def getDateFromSMOSfileName(SMOSfile1):
 		return result[0]
 
 
-def getNewFileName(SMOSfile1, SMOSfile2, destination, operation, band, filetype):
+def getNewFileName(SMOSfile1, SMOSfile2, destination, operation, band, filetype, getFullName=False):
 	import os
-	date1 = getDateFromSMOSfileName(SMOSfile1)
-	date2 = getDateFromSMOSfileName(SMOSfile2)
+	if getFullName:
+		date1 = os.path.splitext(os.path.basename(SMOSfile1))[0]
+		date2 = os.path.splitext(os.path.basename(SMOSfile2))[0]
+	else:
+		date1 = getDateFromSMOSfileName(SMOSfile1)
+		date2 = getDateFromSMOSfileName(SMOSfile2)
 	directory = os.path.join(destination,operation)
 	if not os.path.exists(directory):
 		os.makedirs(directory)
@@ -520,7 +524,7 @@ def getOperation(file1, file2, destination, operation, band=['Soil_Moisture','So
 	prodlist = ""
 	for prod in products:
 		prodlist = prodlist + "'{0}'".format(prod.getName())
-	writeToLog("getOperation: I will try to calculate using following expression: '{0}' on following products: {1}".format(expr,prodlist))
+	writeToLog("getOperation: I will try to calculate using following expression: '{0}' on following products: {1}".format(expr,prodlist), "info")
 	targetBand1.expression = expr
 
 	targetBands = jpy.array(
@@ -702,7 +706,7 @@ def getCollocated(file1, file2, destination):
 
 	# TODO: this should be handled in smarter way!!!
 	filetype = os.path.basename(file1).split("_")[3]
-	destinationPath = getNewFileName(file1, file2, destination, "collocation", "", filetype)
+	destinationPath = getNewFileName(file1, file2, destination, "collocation", "", filetype,True)
 
 	if (not os.path.exists(destinationPath)):
 		products = [snappy.ProductIO.readProduct(file1), snappy.ProductIO.readProduct(file2)]
