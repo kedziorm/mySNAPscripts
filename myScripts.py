@@ -673,11 +673,13 @@ def saveHistogramForFile(file1, xtitle="Values", ytitle="Probability", title="Ba
 	plt.ylabel(ytitle)
 	plt.title(title)
 	plt.grid(True)
-	NewFileName = os.path.split(os.path.split(file1)[0])[1] + os.path.basename(file1) + "_hist_" + suffix + ".png"
+	NewFileName = os.path.split(os.path.split(file1)[0])[1] + os.path.basename(file1) + "_hist_" + suffix + ".svg"
 	directory = os.path.join(SentinelPath,"histograms")
 	if not os.path.exists(directory):
 		os.makedirs(directory)
-	plt.savefig(os.path.join(directory,NewFileName))
+	NewFullPath = os.path.join(directory,NewFileName)
+	plt.savefig(NewFullPath)
+	plt.savefig(os.path.splitext(NewFullPath)[0] + '.pdf')
 	plt.clf()
 
 
