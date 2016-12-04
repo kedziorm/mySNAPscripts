@@ -517,6 +517,10 @@ def getOperation(file1, file2, destination, operation, band=['Soil_Moisture','So
 		products = [snappy.ProductIO.readProduct(collocated)]
 		# Sample expression: 'Sigma0_VH_M - Sigma0_VH_S'
 		expr = "{0}_M {1} {2}_S".format(band[0], operation[0], band[1])
+	prodlist = ""
+	for prod in products:
+		prodlist = prodlist + "'{0}'".format(prod.getName())
+	writeToLog("getOperation: I will try to calculate using following expression: '{0}' on following products: {1}".format(expr,prodlist))
 	targetBand1.expression = expr
 
 	targetBands = jpy.array(
