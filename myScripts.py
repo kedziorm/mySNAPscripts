@@ -390,7 +390,7 @@ def createMap(raster, vmax, vmin, output, shapefile=None, title=None):
 		# TODO: Remove temporal raster?
 		#########################################################
 	#23.00 52.00,24.00 52.00,24.00 52.25,23.00 52.25,23.00 52
-	m = Basemap(llcrnrlon=23.00,llcrnrlat=52.00,urcrnrlon=24.00,urcrnrlat=52.25)
+	m = Basemap(llcrnrlon=22.75,llcrnrlat=51.75,urcrnrlon=24.25,urcrnrlat=52.25)
 	#m = Basemap(llcrnrlon=17.00,llcrnrlat=48.75,urcrnrlon=25.25,urcrnrlat=54.50)
 
 	if shapefile is not None:
@@ -681,6 +681,11 @@ def saveHistogramForFile(file1, xtitle="Values", ytitle="Probability", title=Non
 		if (not title == None):
 			bandName = getMetadataValueFromHdr(hdrFile, 'band names')
 			title = title + bandName if bandName else title
+
+	# TODO: data (scaling) factors should be handled in separate method
+	if (file1.startswith("NETCDF")):
+		factor = float(gdata.GetMetadataItem('Soil_Moisture#scale_factor')) if gdata.GetMetadataItem('Soil_Moisture#scale_factor') != None else float(1)
+		data = data * factor
 
 	# the histogram of the data
 	n, bins, patches = plt.hist(data, facecolor='green') #, 10, normed=1, facecolor='green', alpha=0.75)
