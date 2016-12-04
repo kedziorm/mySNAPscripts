@@ -596,7 +596,7 @@ def getAllBandsStats(file1, pathToSaveStats=None):
 	for bandNumber in range(numberOfBands):
 		Band = prod.getBands()[bandNumber]
 		stats = Band.getStx()
-		message = "FileName,Product,BandName,Min,Max,Avg,StdDev,CV:\t" + ("\t".join(["{0}","{1}","{2}","{3}","{4}","{5}","{6}","{7}"])).format(fileName, prodName, Band.getName(), stats.getMinimum(), stats.getMaximum(), stats.getMedian(), stats.getStandardDeviation(), stats.getCoefficientOfVariation())
+		message = "FileName,Product,BandName,Min,Max,Avg,StdDev,CV,NumberOfPixels,TotalNumberOfPixels:\t" + ("\t".join(["{0}","{1}","{2}","{3}","{4}","{5}","{6}","{7}","{8}", "{9}"])).format(fileName, prodName, Band.getName(), stats.getMinimum(), stats.getMaximum(), stats.getMedian(), stats.getStandardDeviation(), stats.getCoefficientOfVariation(),int(Band.getNumDataElems()), int(stats.getHistogram().getTotals()[0]))
 		with open(pathToSaveStats, "a") as myfile:
 			myfile.write(message)
 			myfile.write("\n")
@@ -650,7 +650,7 @@ def saveHistForFiles(file1, xtitle="Values", ytitle="Probability", title="Band: 
 	else:
 		saveHistogramForFile(file1, xtitle, ytitle, title, suffix)
 
-def saveHistogramForFile(file1, xtitle="Values", ytitle="Probability", title="Band: ", suffix="eng"):
+def saveHistogramForFile(file1, xtitle="Values", ytitle="Probability", title=None, suffix="eng"):
 	# LIMITATIONS: This is *not* working with .dim files
 	# Sample usage:
 	# saveHistogramForFile(smallFile)
@@ -677,8 +677,9 @@ def saveHistogramForFile(file1, xtitle="Values", ytitle="Probability", title="Ba
 		hdrFile = os.path.splitext(file1)[0] + ".hdr"
 		value = getMetadataValueFromHdr(hdrFile, 'data gain values')
 		data = data * float(value) if value else data
-		bandName = getMetadataValueFromHdr(hdrFile, 'band names')
-		title = title + bandName if bandName else title
+		if (not title == None):
+			bandName = getMetadataValueFromHdr(hdrFile, 'band names')
+			title = title + bandName if bandName else title
 
 	# the histogram of the data
 	n, bins, patches = plt.hist(data, facecolor='green') #, 10, normed=1, facecolor='green', alpha=0.75)
@@ -687,7 +688,8 @@ def saveHistogramForFile(file1, xtitle="Values", ytitle="Probability", title="Ba
 		xtitle = xtitle + ' (NA: {:.2%})'.format(NaNprcnt)
 	plt.xlabel(xtitle)
 	plt.ylabel(ytitle)
-	plt.title(title)
+	if (not title == None):
+		plt.title(title)
 	plt.grid(True)
 	NewFileName = os.path.split(os.path.split(file1)[0])[1] + os.path.basename(file1) + "_hist_" + suffix + ".svg"
 	directory = os.path.join(SentinelPath,"histograms")
