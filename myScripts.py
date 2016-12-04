@@ -725,7 +725,7 @@ def getCollocated(file1, file2, destination):
 		writeToLog("Input files: {0}, {1}".format(getProductInfo(file1),getProductInfo(file2)),"info")
 		writeToLog("Collocated product: {0}".format(getProductInfo(destinationPath)),"info")
 	else:
-		print("It seems that destination file already exists. Bye!")
+		print("It seems that destination file '{0}' already exists. Bye!".format(os.path.basename(destinationPath)))
 	return destinationPath
 
 
@@ -778,7 +778,7 @@ def getResampled(file1, destinationPath, resolution=destinationPS):
 
 		product.dispose()
 	else:
-		print("It seems that destination file already exists. Bye!")
+		print("It seems that destination file '{0}' already exists. Bye!".format(os.path.basename(destinationPath)))
 	return destinationPath
 
 def getTerrainCorrected(file1, destinationPath, crs='WGS84(DD)'):
@@ -817,7 +817,7 @@ def getTerrainCorrected(file1, destinationPath, crs='WGS84(DD)'):
 
 		product.dispose()
 	else:
-		print("It seems that destination file already exists. Bye!")
+		print("It seems that destination file '{0}' already exists. Bye!".format(os.path.basename(destinationPath)))
 	return destinationPath
 
 def getReprojected(file1, destinationPath, crs='EPSG:4326'):
@@ -837,6 +837,6 @@ def getReprojected(file1, destinationPath, crs='EPSG:4326'):
 		ProductIO.writeProduct(result,  destinationPath, 'BEAM-DIMAP')
 		product.dispose()
 	else:
-		print("It seems that destination file already exists. Bye!")
+		print("It seems that destination file '{0}' already exists. Bye!".format(os.path.basename(destinationPath)))
 
 	return destinationPath
