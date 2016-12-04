@@ -389,8 +389,9 @@ def createMap(raster, vmax, vmin, output, shapefile=None, title=None):
 		data = dst_ds.ReadAsArray() * factor
 		# TODO: Remove temporal raster?
 		#########################################################
-
-	m = Basemap(llcrnrlon=17.00,llcrnrlat=48.75,urcrnrlon=25.25,urcrnrlat=54.50)
+	#23.00 52.00,24.00 52.00,24.00 52.25,23.00 52.25,23.00 52
+	m = Basemap(llcrnrlon=23.00,llcrnrlat=52.00,urcrnrlon=24.00,urcrnrlat=52.25)
+	#m = Basemap(llcrnrlon=17.00,llcrnrlat=48.75,urcrnrlon=25.25,urcrnrlat=54.50)
 
 	if shapefile is not None:
 		m.readshapefile(shapefile,'shp',drawbounds=True, color='0.3')
@@ -699,7 +700,7 @@ def saveHistogramForFile(file1, xtitle="Values", ytitle="Probability", title=Non
 		os.makedirs(directory)
 	NewFullPath = os.path.join(directory,NewFileName)
 	plt.savefig(NewFullPath)
-	plt.savefig(os.path.splitext(NewFullPath)[0] + '.pdf')
+	#plt.savefig(os.path.splitext(NewFullPath)[0] + '.pdf')
 	plt.clf()
 
 
