@@ -487,10 +487,12 @@ def getOperation(file1, file2, destination, operation, band=['Soil_Moisture','So
 	snappy.ProductIO.readProduct(file2)]
 	#verify if products contain selected band
 	if not (band[0] in products[0].getBandNames()):
-		print((band[0] + " not in the " + products[0].getName() + " Exiting"))
+		writeToLog(band[0] + " not in the " + products[0].getName() + " Exiting")
+		writeToLog("Available bands: {0} in file {1}".format(products[0].getBandNames(),os.path.basename(file1)))
 		return
 	if not (band[1] in products[1].getBandNames()):
-		print((band[1] + " not in the " + products[1].getName() + " Exiting"))
+		writeToLog(band[1] + " not in the " + products[1].getName() + " Exiting")
+		writeToLog("Available bands: {0} in file {1}".format(products[1].getBandNames(),os.path.basename(file2)))
 		return
 
 	GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
