@@ -660,6 +660,10 @@ def saveHistogramForFile(file1, xtitle="Values", ytitle="Probability", title="Ba
 	dataset = gdal.Open(file1)
 	band = dataset.GetRasterBand(1)
 	data = np.squeeze(band.ReadAsArray())
+	allElem = np.prod(data.shape)
+	NaNElem = np.count_nonzero((np.isnan(data)))
+	NaNprcnt = NaNElem/allElem
+	data = data[np.logical_not(np.isnan(data))]
 
 	if (os.path.splitext(file1)[1] == '.img'):
 		hdrFile = os.path.splitext(file1)[0] + ".hdr"
@@ -671,6 +675,8 @@ def saveHistogramForFile(file1, xtitle="Values", ytitle="Probability", title="Ba
 	# the histogram of the data
 	n, bins, patches = plt.hist(data, facecolor='green') #, 10, normed=1, facecolor='green', alpha=0.75)
 
+	if (float(NaNprcnt) > float(0)):
+		xtitle = xtitle + ' (NA: {:.2%})'.format(NaNprcnt)
 	plt.xlabel(xtitle)
 	plt.ylabel(ytitle)
 	plt.title(title)
