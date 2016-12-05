@@ -196,7 +196,7 @@ def writeToLog(message, messageType='ERROR'):
 	log_path = os.path.join(os.path.expanduser("~"),'Dropbox/DyzagregacjaSMOS/logi.log')
 	logger = logging.getLogger('Dyzagregacja')
 	hdlr = logging.FileHandler(log_path)
-	formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+	formatter = logging.Formatter('%(asctime)s\t%(levelname)s\t%(message)s', datefmt='%H:%M:%S')
 	hdlr.setFormatter(formatter)
 	logger.addHandler(hdlr)
 	logger.setLevel(logging.INFO)
