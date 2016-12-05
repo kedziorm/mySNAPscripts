@@ -240,8 +240,8 @@ def get_whole_Product_size(file_path):
 def get_data_path(file_path):
 	data_path = os.path.splitext(file_path)[0] + '.data'
 	if (not os.path.isdir(data_path)):
-		message = "There is NO following foler '{0}'. Please ensure where data for '{1}' file are".format(data_path, file_path)
-		writeToLog(message)
+		message = "There is NO following folder '{0}'. Please ensure where data for '{1}' file are".format(data_path, file_path)
+		writeToLog("\t".join(["get_data_path", message]))
 	return data_path
 
 def file_size_in_bytes(file_path):
@@ -260,14 +260,14 @@ def file_size(file_path):
 def removeProduct(file_path):
 	import shutil
 	if (os.path.exists(file_path)):
-		message = "Trying to remove file '{0}' - file size {1}, whole product size \t {2}".format(os.path.basename(file_path), file_size(file_path), get_whole_Product_size(file_path))
-		writeToLog(message,"info")
+		message = "{0}\t{1}\twhole product size\t{2}".format(os.path.basename(file_path), file_size(file_path), get_whole_Product_size(file_path))
+		writeToLog("\t".join(["removeProduct", message]),"info")
 		if (os.path.splitext(file_path)[1] == '.dim'):
 			dirToRem = get_data_path(file_path)
 			shutil.rmtree(dirToRem) # will delete a directory and all its contents.
 		os.remove(file_path)
 	else:
-		writeToLog("Trying to remove non-existing file: {0}".format(file_path),"warning")
+		writeToLog("\t".join(["removeProduct", "Trying to remove non-existing file: {0}".format(file_path)]),"warning")
 
 def createMap(raster, vmax, vmin, output, shapefile=None, title=None):
 	###################################################################
@@ -492,12 +492,12 @@ def getOperation(file1, file2, destination, operation, band=['Soil_Moisture','So
 	snappy.ProductIO.readProduct(file2)]
 	#verify if products contain selected band
 	if not (band[0] in products[0].getBandNames()):
-		writeToLog(band[0] + " not in the " + products[0].getName() + " Exiting")
-		writeToLog("Available bands: {0} in file {1}".format(products[0].getBandNames(),os.path.basename(file1)))
+		writeToLog("\t".join(["getOperation", band[0] + " not in the " + products[0].getName() + " Exiting"]))
+		writeToLog("\t".join(["getOperation","Available bands:\t{0}\tfile:{1}".format(products[0].getBandNames(),os.path.basename(file1))]))
 		return
 	if not (band[1] in products[1].getBandNames()):
-		writeToLog(band[1] + " not in the " + products[1].getName() + " Exiting")
-		writeToLog("Available bands: {0} in file {1}".format(products[1].getBandNames(),os.path.basename(file2)))
+		writeToLog("\t".join(["getOperation", band[1] + " not in the " + products[1].getName() + " Exiting"]))
+		writeToLog("\t".join(["getOperation","Available bands:\t{0}\tfile:{1}".format(products[1].getBandNames(),os.path.basename(file2))]))
 		return
 
 	GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
@@ -525,7 +525,7 @@ def getOperation(file1, file2, destination, operation, band=['Soil_Moisture','So
 	prodlist = ""
 	for prod in products:
 		prodlist = prodlist + "'{0}'".format(prod.getName())
-	writeToLog("getOperation: I will try to calculate using following expression: '{0}' on following products: {1}".format(expr,prodlist), "info")
+	writeToLog("\t".join(["getOperation", "{0}\t{1}".format(expr,prodlist)]), "info")
 	targetBand1.expression = expr
 
 	targetBands = jpy.array(
@@ -739,9 +739,8 @@ def getCollocated(file1, file2, destination):
 		
 		for prod in products:
 			prod.dispose()
-		writeToLog("Collocated product saved as '{0}' \t {1}".format(os.path.basename(destinationPath), get_whole_Product_size(destinationPath)),"info")
-		writeToLog("Input files: {0}, {1}".format(getProductInfo(file1),getProductInfo(file2)),"info")
-		writeToLog("Collocated product: {0}".format(getProductInfo(destinationPath)),"info")
+		writeToLog("\t".join(["getCollocated", "Input files: {0}, {1}".format(getProductInfo(file1),getProductInfo(file2))]),"info")
+		writeToLog("\t".join(["getCollocated", "Collocated product saved as '{0}' \t {1}".format(os.path.basename(destinationPath), get_whole_Product_size(destinationPath))]),"info")
 	else:
 		print("It seems that destination file '{0}' already exists. Bye!".format(os.path.basename(destinationPath)))
 	return destinationPath
@@ -814,7 +813,7 @@ def getTerrainCorrected(file1, destinationPath, crs='WGS84(DD)'):
 		DEM = "SRTM 3Sec"
 		HashMap = jpy.get_type('java.util.HashMap')
 		GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
-		writeToLog("Terrain correction using {0} file will use pixelSpacingInMeter: {1}".format(DEM,destinationPS),"info")
+		writeToLog("\t".join(["getTerrainCorrected", "DEM:",DEM,"destination (m):", str(destinationPS)]),"info")
 		parameters = HashMap()
 		parameters.put('demName', DEM)
 		parameters.put('externalDEMApplyEGM', True)
