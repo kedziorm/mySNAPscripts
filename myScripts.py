@@ -44,6 +44,7 @@ os.system('export _JAVA_OPTIONS=-Xmx4096m')
 ##### Global parameters:
 # output files format:
 OutputType = [".dim", "BEAM-DIMAP"]
+SecondaryOutputType = [".tiff", "GeoTIFF"]
 # Area - Polygon should describe part of the Eastern Poland
 wkt = "POLYGON((23.00 52.00,24.00 52.00,24.00 52.25,23.00 52.25,23.00 52))"
 # prefixes added to file names:
@@ -176,7 +177,7 @@ def getDateFromSMOSfileName(SMOSfile1):
 		return result[0]
 
 
-def getNewFileName(SMOSfile1, SMOSfile2, destination, operation, band, filetype, getFullName=False):
+def getNewFileName(SMOSfile1, SMOSfile2, destination, operation, band, filetype, getFullName=False, OutTyp=OutputType[0]):
 	import os
 	if getFullName:
 		date1 = os.path.splitext(os.path.basename(SMOSfile1))[0]
@@ -188,7 +189,7 @@ def getNewFileName(SMOSfile1, SMOSfile2, destination, operation, band, filetype,
 	if not os.path.exists(directory):
 		os.makedirs(directory)
 	return os.path.join(directory,
-	"_".join([filetype, date1, operation, date2,band]) + OutputType[0])
+	"_".join([filetype, date1, operation, date2,band]) + OutTyp)
 
 
 def writeToLog(message, messageType='ERROR'):
@@ -483,7 +484,7 @@ def getSubset(SentinelFile):
 	return newFile
 
 
-def getOperation(file1, file2, destination, operation, band=['Soil_Moisture','Soil_Moisture']):
+def getOperation(file1, file2, destination, operation, band=['Soil_Moisture','Soil_Moisture'], outType = OutputType):
 	import snappy
 	from snappy import GPF
 	from snappy import ProductIO
@@ -541,8 +542,8 @@ def getOperation(file1, file2, destination, operation, band=['Soil_Moisture','So
 	
 	# TODO: this should be handled in smarter way!!!
 	filetype = os.path.basename(file1).split("_")[3]
-	resultFile = getNewFileName(file1, file2, destination, operation[1], band[0], filetype)
-	ProductIO.writeProduct(result, resultFile, OutputType[1])
+	resultFile = getNewFileName(file1, file2, destination, operation[1], band[0], filetype, False, outType[0])
+	ProductIO.writeProduct(result, resultFile, outType[1])
 	for prod in products:
 		prod.dispose()
 	result.dispose()
@@ -749,16 +750,16 @@ def getCollocated(file1, file2, destination):
 def getDiff(file1, file2, destination, band=['Soil_Moisture','Soil_Moisture']):
 	# TODO: test output from SNAP desktop and from this file
 	return getOperation(file1, file2, destination,
-		["-", "diff"], band)
+		["-", "diff"], band, OutputType)
 
 
 def getDivision(file1, file2, destination, band=['Soil_Moisture','Soil_Moisture']):
 	return getOperation(file1, file2, destination,
-		["/", "div"], band)
+		["/", "div"], band, OutputType)
 
 def getSum(file1, file2, destination, band=['Soil_Moisture','Soil_Moisture']):
 	return getOperation(file1, file2, destination,
-		["+", "sum"], band)
+		["+", "sum"], band, SecondaryOutputType)
 
 # I will use Sentinel and SMOS data
 # I will use two functions: getCoarseResProd (to SMOSPS resolution) or getBetterResProd (to destinationPS resolution)
