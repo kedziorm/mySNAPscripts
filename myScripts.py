@@ -580,6 +580,13 @@ def getBandFromProduct(file1, bandNumber):
 	# RuntimeError: java.lang.IllegalArgumentException: The name to be externalized must at least contain one character
 	#prod.dispose()
 	return Band
+    
+def getBandRawData(file1,bandNumber):
+    # reads whole band and return content as an array (matrix)
+    # http://forum.step.esa.int/t/is-it-possible-to-read-whole-band-data-as-an-array-as-a-raw-data-from-python
+    Band = getBandFromProduct(file1,bandNumber)
+    Band.readRasterDataFully()
+    return Band.getRasterData().getElems()
 
 def getAllBandsStats(file1, pathToSaveStats=None):
 	import snappy
