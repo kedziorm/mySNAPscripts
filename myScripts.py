@@ -89,6 +89,27 @@ def isBandInProd(bandName, product):
 		writeToLog("\t".join(["isBandInProd","Available bands:","{0}".format(product.getBandNames())]))
 		return False
 
+def getStatsAndHist(inputFile,directorySuffix = None):
+	getAllBandsStats(inputFile)
+	saveHistForFiles(inputFile,"Values", "Probability", None, "eng",directorySuffix)
+	saveHistForFiles(inputFile,"Wartości", "Prawdopodobieństwo", None, "pl",directorySuffix)
+
+def ExecuteAndLog(command):
+	cmdName = command[0:command.index("(")]
+	logTxt = "\t".join([cmdName,command])
+	writeToLog(logTxt,"info")
+	return eval(command)
+
+def ExecLogStats(command, onlyStats=True, histPath="dyzagregowane"):
+	product = ExecuteAndLog(command)
+	logTxt2 = "\t".join([cmdName,product,get_whole_Product_size(product)])
+	writeToLog(logTxt2,"info")
+	if onlyStats:
+		getAllBandsStats(product)
+	else:
+		getStatsAndHist(product, histPath)
+	return product
+
 def getAllowedFormats():
 	# Allowed formats to write: GeoTIFF-BigTIFF,HDF5,Snaphu,BEAM-DIMAP,
 	# GeoTIFF+XML,PolSARPro,NetCDF-CF,NetCDF-BEAM,ENVI,JP2,
