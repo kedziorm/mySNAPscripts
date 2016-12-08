@@ -632,7 +632,7 @@ def getBandRawData(file1,bandNumber):
     Band.readRasterDataFully()
     return Band.getRasterData().getElems()
 
-def getAllBandsStats(file1, pathToSaveStats=None):
+def getAllBandsStats(file1):
 	import snappy
 	# TODO: When I try to read 'Soil_Moisture_M.img' directly (not hdr file), I receive a NoneType object
 	prod = readProd(file1)
@@ -750,7 +750,7 @@ def saveHistogramForFile(file1, xtitle="Values", ytitle="Probability", title=Non
 		plt.title(title)
 	plt.grid(True)
 	NewFileName = os.path.split(os.path.split(file1)[0])[1] + os.path.basename(file1) + "_hist_" + suffix + ".svg"
-	directory = os.path.join(SentinelPath,"histograms")
+	directory = histogramDirectory
 	if (not directorySuffix == None):
 		directory = os.path.join(directory,directorySuffix)
 	if not os.path.exists(directory):
