@@ -81,6 +81,14 @@ def readProd(file1):
 		prod = None
 	return prod
 
+def isBandInProd(bandName, product):
+	if bandName in product.getBandNames():
+		return True
+	else:
+		writeToLog("\t".join(["isBandInProd", bandName + " not in the " + product.getName()]))
+		writeToLog("\t".join(["isBandInProd","Available bands:","{0}".format(product.getBandNames())]))
+		return False
+
 def getAllowedFormats():
 	# Allowed formats to write: GeoTIFF-BigTIFF,HDF5,Snaphu,BEAM-DIMAP,
 	# GeoTIFF+XML,PolSARPro,NetCDF-CF,NetCDF-BEAM,ENVI,JP2,
@@ -503,13 +511,10 @@ def getOperation(file1, file2, destination, operation, band=['Soil_Moisture','So
 	products = [readProd(file1),
 	readProd(file2)]
 	#verify if products contain selected band
-	if not (band[0] in products[0].getBandNames()):
-		writeToLog("\t".join(["getOperation", band[0] + " not in the " + products[0].getName() + " Exiting"]))
-		writeToLog("\t".join(["getOperation","Available bands:\t{0}\tfile:{1}".format(products[0].getBandNames(),os.path.basename(file1))]))
+
+	if (not isBandInProd(band[0], products[0])):
 		return
-	if not (band[1] in products[1].getBandNames()):
-		writeToLog("\t".join(["getOperation", band[1] + " not in the " + products[1].getName() + " Exiting"]))
-		writeToLog("\t".join(["getOperation","Available bands:\t{0}\tfile:{1}".format(products[1].getBandNames(),os.path.basename(file2))]))
+	if (not isBandInProd(band[1], products[1])):
 		return
 
 	GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
@@ -533,7 +538,13 @@ def getOperation(file1, file2, destination, operation, band=['Soil_Moisture','So
 		collocated = getCollocated(file1, file2, destination)
 		products = [readProd(collocated)]
 		# Sample expression: 'Sigma0_VH_M - Sigma0_VH_S'
-		expr = "{0}_M {1} {2}_S".format(band[0], operation[0], band[1])
+		newBand1 = "{0}_M".format(band[0])
+		newBand2 = "{0}_S".format(band[1])
+		if (not isBandInProd(newBand1, products[0])):
+			return
+		if (not isBandInProd(newBand2, products[0])):
+			return
+		expr = "{0} {1} {2}".format(newBand1, operation[0],newBand2)
 	prodlist = ""
 	for prod in products:
 		prodlist = prodlist + "'{0}'".format(prod.getName())
