@@ -789,8 +789,7 @@ def getCollocated(file1, file2, destination):
 		parameters.put('renameSlaveComponents', True)
 		parameters.put('masterComponentPattern', "${ORIGINAL_NAME}_M")
 		parameters.put('slaveComponentPattern', "${ORIGINAL_NAME}_S")
-		# Changed from 'NEAREST_NEIGHBOUR' to 'BILINEAR_INTERPOLATION'
-		parameters.put('resamplingType', "BILINEAR_INTERPOLATION")
+		parameters.put('resamplingType', "NEAREST_NEIGHBOUR")
 		
 		result = GPF.createProduct('Collocate', parameters, sourceProducts)
 		ProductIO.writeProduct(result,  destinationPath, 'BEAM-DIMAP')
