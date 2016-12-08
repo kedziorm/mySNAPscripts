@@ -44,7 +44,7 @@ os.system('export _JAVA_OPTIONS=-Xmx4096m')
 ##### Global parameters:
 # output files format:
 OutputType = [".dim", "BEAM-DIMAP"]
-SecondaryOutputType = [".tiff", "GeoTIFF"]
+SecondaryOutputType = [".tif", "GeoTIFF"]
 # Area - Polygon should describe part of the Eastern Poland
 wkt = "POLYGON((23.00 52.00,24.00 52.00,24.00 52.25,23.00 52.25,23.00 52))"
 # prefixes added to file names:
@@ -69,6 +69,17 @@ SentinelFile = os.path.join(SentinelPath,
 smallFile = os.path.join(SentinelPath,"collocation/CLF33A_20160514_collocation_20160517_.data/Soil_Moisture_M.img")
 sampleDimFile = os.path.join(SentinelPath,"CLF33A_20160514_collocation_20160517_.dim")
 
+def readProd(file1):
+	import snappy, os
+	if os.path.isfile(file1):
+		prod = snappy.ProductIO.readProduct(file1)
+	elif os.path.exists(file1):
+		writeToLog("\t".join(["readProduct", str(file1), "is not a file!!!"]))
+		prod = None
+	else:
+		writeToLog("\t".join(["readProduct", str(file1), "does *NOT* exists"]))
+		prod = None
+	return prod
 
 def getAllowedFormats():
 	# Allowed formats to write: GeoTIFF-BigTIFF,HDF5,Snaphu,BEAM-DIMAP,
@@ -441,7 +452,7 @@ def getSigma(SentinelFile):
 		newFile = newFilepath(SentinelFile, prefixes[0])
 		if (not os.path.exists(newFile)):
 			# Read sourceProduct
-			sourceProduct = snappy.ProductIO.readProduct(SentinelFile)
+			sourceProduct = readProd(SentinelFile)
 			# Use calibration operator - I've taken:
 			# "org.esa.s1tbx.calibration.gpf.CalibrationOp" from the help window
 			CalibrationOp = jpy.get_type("org.esa.s1tbx.calibration.gpf.CalibrationOp")
@@ -489,8 +500,8 @@ def getOperation(file1, file2, destination, operation, band=['Soil_Moisture','So
 	from snappy import GPF
 	from snappy import ProductIO
 
-	products = [snappy.ProductIO.readProduct(file1),
-	snappy.ProductIO.readProduct(file2)]
+	products = [readProd(file1),
+	readProd(file2)]
 	#verify if products contain selected band
 	if not (band[0] in products[0].getBandNames()):
 		writeToLog("\t".join(["getOperation", band[0] + " not in the " + products[0].getName() + " Exiting"]))
@@ -520,7 +531,7 @@ def getOperation(file1, file2, destination, operation, band=['Soil_Moisture','So
 		for prod in products:
 			prod.dispose()
 		collocated = getCollocated(file1, file2, destination)
-		products = [snappy.ProductIO.readProduct(collocated)]
+		products = [readProd(collocated)]
 		# Sample expression: 'Sigma0_VH_M - Sigma0_VH_S'
 		expr = "{0}_M {1} {2}_S".format(band[0], operation[0], band[1])
 	prodlist = ""
@@ -554,7 +565,7 @@ def getProductInfo(file1):
 	from snappy import GPF
 	from snappy import ProductIO
 
-	prod = snappy.ProductIO.readProduct(file1)
+	prod = readProd(file1)
 	bandNames=''
 	for i in prod.getBandNames():
 		bandNames += "'{0}'".format(i)
@@ -569,7 +580,7 @@ def getBandFromProduct(file1, bandNumber):
 	from snappy import GPF
 	from snappy import ProductIO
 	# TODO: When I try to read 'Soil_Moisture_M.img' directly (not hdr file), I receive a NoneType object
-	prod = snappy.ProductIO.readProduct(file1)
+	prod = readProd(file1)
 	
 	if (len(prod.getBands()) >= bandNumber):
 		Band = prod.getBands()[bandNumber]
@@ -591,7 +602,7 @@ def getBandRawData(file1,bandNumber):
 def getAllBandsStats(file1, pathToSaveStats=None):
 	import snappy
 	# TODO: When I try to read 'Soil_Moisture_M.img' directly (not hdr file), I receive a NoneType object
-	prod = snappy.ProductIO.readProduct(file1)
+	prod = readProd(file1)
 	if (not prod):
 		errormsg = "getAllBandsStats - Error when reading '{0}' file".format(file1)
 		print(errormsg)
@@ -727,7 +738,7 @@ def getCollocated(file1, file2, destination):
 	destinationPath = getNewFileName(file1, file2, destination, "collocation", "", filetype,True)
 
 	if (not os.path.exists(destinationPath)):
-		products = [snappy.ProductIO.readProduct(file1), snappy.ProductIO.readProduct(file2)]
+		products = [readProd(file1), readProd(file2)]
 
 		HashMap = jpy.get_type('java.util.HashMap')
 		GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
@@ -786,7 +797,7 @@ def getResampled(file1, destinationPath, resolution=destinationPS):
 	from snappy import GPF
 	from snappy import ProductIO
 	if (not os.path.exists(destinationPath)):
-		product = snappy.ProductIO.readProduct(file1)
+		product = readProd(file1)
 		HashMap = jpy.get_type('java.util.HashMap')
 		GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
 		parameters = HashMap()
@@ -816,7 +827,7 @@ def getTerrainCorrected(file1, destinationPath, crs='WGS84(DD)'):
 	from snappy import GPF
 	from snappy import ProductIO
 	if (not os.path.exists(destinationPath)):
-		product = snappy.ProductIO.readProduct(file1)
+		product = readProd(file1)
 		
 		DEM = "SRTM 3Sec"
 		HashMap = jpy.get_type('java.util.HashMap')
@@ -850,7 +861,7 @@ def getReprojected(file1, destinationPath, crs='EPSG:4326'):
 	from snappy import GPF
 	from snappy import ProductIO
 	if (not os.path.exists(destinationPath)):
-		product = snappy.ProductIO.readProduct(file1)
+		product = readProd(file1)
 
 		HashMap = jpy.get_type('java.util.HashMap')
 		GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
