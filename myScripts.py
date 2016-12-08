@@ -101,6 +101,7 @@ def ExecuteAndLog(command):
 	return eval(command)
 
 def ExecLogStats(command, onlyStats=True, histPath="dyzagregowane"):
+	cmdName = command[0:command.index("(")]
 	product = ExecuteAndLog(command)
 	logTxt2 = "\t".join([cmdName,product,get_whole_Product_size(product)])
 	writeToLog(logTxt2,"info")
