@@ -68,6 +68,9 @@ SentinelFile = os.path.join(SentinelPath,
 "S1A_IW_GRDH_1SDV_20160512T161044_20160512T161109_011228_010FA8_C584.zip")
 smallFile = os.path.join(SentinelPath,"collocation/CLF33A_20160514_collocation_20160517_.data/Soil_Moisture_M.img")
 sampleDimFile = os.path.join(SentinelPath,"CLF33A_20160514_collocation_20160517_.dim")
+histogramDirectory = os.path.join(home,"Dropbox/DyzagregacjaSMOS/histograms")
+pathToSaveStats = os.path.join(home,"Dropbox/DyzagregacjaSMOS/BandStatistics.csv")
+maps = os.path.join(home,"Dropbox/DyzagregacjaSMOS/maps")
 
 def readProd(file1):
 	import snappy, os
@@ -626,14 +629,16 @@ def getBandFromProduct(file1, bandNumber):
 	return Band
     
 def getBandRawData(file1,bandNumber):
-    # reads whole band and return content as an array (matrix)
-    # http://forum.step.esa.int/t/is-it-possible-to-read-whole-band-data-as-an-array-as-a-raw-data-from-python
-    Band = getBandFromProduct(file1,bandNumber)
-    Band.readRasterDataFully()
-    return Band.getRasterData().getElems()
+	# reads whole band and return content as an array (matrix)
+	# http://forum.step.esa.int/t/is-it-possible-to-read-whole-band-data-as-an-array-as-a-raw-data-from-python
+	Band = getBandFromProduct(file1,bandNumber)
+	Band.readRasterDataFully()
+	return Band.getRasterData().getElems()
 
 def getAllBandsStats(file1):
 	import snappy
+	# TODO: FIX THIS UGLY HARDCODE:
+	pathToSaveStats = os.path.join(home,"Dropbox/DyzagregacjaSMOS/BandStatistics.csv")
 	# TODO: When I try to read 'Soil_Moisture_M.img' directly (not hdr file), I receive a NoneType object
 	prod = readProd(file1)
 	if (not prod):
