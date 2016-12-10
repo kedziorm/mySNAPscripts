@@ -594,6 +594,8 @@ def getOperation(file1, file2, destination, operation, band=['Soil_Moisture','So
 	for prod in products:
 		prod.dispose()
 	result.dispose()
+	parameters = None
+	products = None
 	return resultFile
 
 def getProductInfo(file1):
@@ -796,6 +798,9 @@ def getCollocated(file1, file2, destination):
 		
 		for prod in products:
 			prod.dispose()
+		result.dispose()
+		sourceProducts = None
+		parameters = None
 		writeToLog("\t".join(["getCollocated", "Input files: {0}, {1}".format(getProductInfo(file1),getProductInfo(file2))]),"info")
 		writeToLog("\t".join(["getCollocated", "Collocated product saved as '{0}' \t {1}".format(os.path.basename(destinationPath), get_whole_Product_size(destinationPath))]),"info")
 	else:
@@ -851,6 +856,9 @@ def getResampled(file1, destinationPath, resolution=destinationPS):
 		ProductIO.writeProduct(result,  destinationPath, 'BEAM-DIMAP')
 
 		product.dispose()
+		result.dispose()
+		parameters = None
+		product = None
 	else:
 		print("It seems that destination file '{0}' already exists. Bye!".format(os.path.basename(destinationPath)))
 	return destinationPath
@@ -890,6 +898,9 @@ def getTerrainCorrected(file1, destinationPath, crs='WGS84(DD)'):
 		ProductIO.writeProduct(result,  destinationPath, 'BEAM-DIMAP')
 
 		product.dispose()
+		result.dispose()
+		parameters = None
+		product = None
 	else:
 		print("It seems that destination file '{0}' already exists. Bye!".format(os.path.basename(destinationPath)))
 	return destinationPath
@@ -901,6 +912,8 @@ def getReprojected(file1, destinationPath, crs='EPSG:4326'):
 	if (not os.path.exists(destinationPath)):
 		product = readProd(file1)
 
+		# TODO: Separate method for handling creating results of computations using 'GPF.createProduct' 
+		# (it seems that part of code has been repeated multiple times in different methods of this script)
 		HashMap = jpy.get_type('java.util.HashMap')
 		GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
 
@@ -910,6 +923,9 @@ def getReprojected(file1, destinationPath, crs='EPSG:4326'):
 		result = GPF.createProduct('Reproject', parameters, product)
 		ProductIO.writeProduct(result,  destinationPath, 'BEAM-DIMAP')
 		product.dispose()
+		result.dispose()
+		parameters = None
+		product = None
 	else:
 		print("It seems that destination file '{0}' already exists. Bye!".format(os.path.basename(destinationPath)))
 
