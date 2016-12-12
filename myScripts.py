@@ -49,6 +49,7 @@ SecondaryOutputType = [".tif", "GeoTIFF"]
 # Area - Polygon should describe part of the Eastern Poland
 wkt = "POLYGON((23.00 52.00,24.00 52.00,24.00 52.25,23.00 52.25,23.00 52))"
 # prefixes added to file names:
+# TODO: add and use prefix for terrain corrected files.
 prefixes = ["calibrated", "subset"]
 # pixel spacing
 destinationPS = float(500)
@@ -281,6 +282,7 @@ def get_whole_Product_size(file_path):
 	return convert_bytes(total_size)
 
 def get_data_path(file_path):
+	# Gets '.data' folder for '.dim' files (products saved in "BEAM-DIMAP" format)
 	data_path = os.path.splitext(file_path)[0] + '.data'
 	if (not os.path.isdir(data_path)):
 		message = "There is NO following folder '{0}'. Please ensure where data for '{1}' file are".format(data_path, file_path)
@@ -301,6 +303,7 @@ def file_size(file_path):
 	return convert_bytes(file_size_in_bytes(file_path))
 
 def removeProduct(file_path):
+	# TODO: http://forum.step.esa.int/t/how-to-properly-remove-delete-all-related-files-and-folders-esa-snap-product-from-python
 	import shutil
 	if (os.path.exists(file_path)):
 		message = "{0}\t{1}\twhole product size\t{2}".format(os.path.basename(file_path), file_size(file_path), get_whole_Product_size(file_path))
