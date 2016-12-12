@@ -216,8 +216,7 @@ def getDateFromSMOSfileName(SMOSfile1):
 	import os
 	result = re.findall("(20\d{6}).*", os.path.basename(SMOSfile1))
 	if (len(result) != 1):
-		print(("Unable to get date from SMOS file name: "
-		+ os.path.basename(SMOSfile1)))
+		writeToLog("\t".join(["getDateFromSMOSfileName", "Unable to get date from SMOS file name: {0}".format(os.path.basename(SMOSfile1))]))
 		return False
 	else:
 		return result[0]
@@ -383,13 +382,13 @@ def createMap(raster, vmax, vmin, output, shapefile=None, title=None):
 	y_block_size = block_sizes[1]
 	xsize = band.XSize
 	ysize = band.YSize
-	print('x_block_size: {0}, y_block_size: {1}.'.format(x_block_size, y_block_size))
-	print('xsize: {0}, ysize: {1}.'.format(xsize, ysize))
+	writeToLog("\t".join(["createMap", 'x_block_size: {0}, y_block_size: {1}.'.format(x_block_size, y_block_size)]),"info")
+	writeToLog("\t".join(["createMap", 'xsize: {0}, ysize: {1}.'.format(xsize, ysize)]),"info")
 
 	if (xsize < 5000):
 		data = gdata.ReadAsArray()
 		data = data * factor
-		print('Whole data min: {0}, max: {1}, mean: {2}.'.format(data.min(), data.max(), data.mean()))
+		writeToLog("\t".join(["createMap", 'Whole data min: {0}, max: {1}, mean: {2}.'.format(data.min(), data.max(), data.mean())]),"info")
 	else:
 		#########################################################
 		## TODO: for big rasters such as Sentinel-1:
@@ -474,10 +473,10 @@ def createMAPsForFolder(path, fileMask, outputPath, fileName, whatADD=[], shapef
 			raster = whatADD[0] + myFile + whatADD[1]
 		else:
 			raster = myFile
-		print('Trying to get date for following file name: {0}'.format(myFile))
+		writeToLog("\t".join(["createMAPsForFolder", 'Trying to get date for following file name: {0}'.format(myFile)]),"info")
 		myDate = getDateFromFileName(myFile)
 		output = os.path.join(outputPath,myDate + fileName)
-		print('raster: {0}, output: {1}.'.format(raster, output))
+		writeToLog("\t".join(["createMAPsForFolder", 'raster: {0}, output: {1}.'.format(raster, output)]),"info")
 		createMap(raster, vmax, vmin, output, shapefile)
 
 def getSigma(SentinelFile):
@@ -502,13 +501,13 @@ def getSigma(SentinelFile):
 			sourceProduct.dispose()
 			targetProduct.dispose()
 		else:
-			print(("File already exists. Exit without changes."))
+			writeToLog("\t".join(["getSigma", "File already exists. Exit without changes."]),"WARNING")
 		return newFile
 
 
 def getSubset(SentinelFile):
 	#Initialize:
-	print(("Please exceute getSubset method AFTER executing getSigma (after using Calibration)"))
+	print(("Please execute getSubset method *AFTER* executing getSigma (after using Calibration operator)"))
 	SubsetOp = snappy.jpy.get_type('org.esa.snap.core.gpf.common.SubsetOp')
 	WKTReader = snappy.jpy.get_type('com.vividsolutions.jts.io.WKTReader')
 	geom = WKTReader().read(wkt)
@@ -521,7 +520,7 @@ def getSubset(SentinelFile):
 	# Ensure that file does not exists:
 	newFile = newFilepath(SentinelFile, prefixes[1])
 	if os.path.exists(newFile):
-		print("It seems that subset of your data already exists. Bye!")
+		writeToLog("\t".join(["getSubset", "It seems that subset of your data already exists. Bye!"]),"WARNING")
 	else:
 		print(("Starting writing to the file: " + newFile))
 		ProductIO.writeProduct(sub_product, newFile, OutputType[1])
@@ -625,7 +624,7 @@ def getBandFromProduct(file1, bandNumber):
 	if (len(prod.getBands()) >= bandNumber):
 		Band = prod.getBands()[bandNumber]
 	else:
-		print("Illegal band number")
+		writeToLog("\t".join(["getBandFromProduct", "Illegal band number {0}".format(bandNumber)]),"WARNING")
 		Band = None
 	# If 'prod.dispose()' line (below) is not commented, I receive an error message when usign this function in getBandStats
 	# RuntimeError: java.lang.IllegalArgumentException: The name to be externalized must at least contain one character
@@ -647,7 +646,7 @@ def getAllBandsStats(file1):
 	prod = readProd(file1)
 	if (not prod):
 		errormsg = "getAllBandsStats - Error when reading '{0}' file".format(file1)
-		print(errormsg)
+		writeToLog("\t".join(["getAllBandsStats", errormsg]))
 		return errormsg
 	numberOfBands = len(prod.getBands())
 	prodName = prod.getName()
@@ -806,7 +805,7 @@ def getCollocated(file1, file2, destination):
 		writeToLog("\t".join(["getCollocated", "Input files: {0}, {1}".format(getProductInfo(file1),getProductInfo(file2))]),"info")
 		writeToLog("\t".join(["getCollocated", "Collocated product saved as '{0}' \t {1}".format(os.path.basename(destinationPath), get_whole_Product_size(destinationPath))]),"info")
 	else:
-		print("It seems that destination file '{0}' already exists. Bye!".format(os.path.basename(destinationPath)))
+		writeToLog("\t".join(["getCollocated", "It seems that destination file '{0}' already exists. Bye!".format(os.path.basename(destinationPath))]),"WARNING")
 	return destinationPath
 
 
@@ -862,7 +861,7 @@ def getResampled(file1, destinationPath, resolution=destinationPS):
 		parameters = None
 		product = None
 	else:
-		print("It seems that destination file '{0}' already exists. Bye!".format(os.path.basename(destinationPath)))
+		writeToLog("\t".join(["getResampled", "It seems that destination file '{0}' already exists. Bye!".format(os.path.basename(destinationPath))]),"WARNING")
 	return destinationPath
 
 def getTerrainCorrected(file1, destinationPath, crs='WGS84(DD)'):
@@ -904,7 +903,7 @@ def getTerrainCorrected(file1, destinationPath, crs='WGS84(DD)'):
 		parameters = None
 		product = None
 	else:
-		print("It seems that destination file '{0}' already exists. Bye!".format(os.path.basename(destinationPath)))
+		writeToLog("\t".join(["getTerrainCorrected", "It seems that destination file '{0}' already exists. Bye!".format(os.path.basename(destinationPath))]),"WARNING")
 	return destinationPath
 
 def getReprojected(file1, destinationPath, crs='EPSG:4326'):
@@ -929,6 +928,6 @@ def getReprojected(file1, destinationPath, crs='EPSG:4326'):
 		parameters = None
 		product = None
 	else:
-		print("It seems that destination file '{0}' already exists. Bye!".format(os.path.basename(destinationPath)))
+		writeToLog("\t".join(["getReprojected", "It seems that destination file '{0}' already exists. Bye!".format(os.path.basename(destinationPath))]),"WARNING")
 
 	return destinationPath
