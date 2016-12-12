@@ -510,7 +510,7 @@ def getSubset(SentinelFile):
 	geom = WKTReader().read(wkt)
 	op = SubsetOp()
 	# read source product and set properties:
-	product = ProductIO.readProduct(SentinelFile)
+	product = readProd(SentinelFile)
 	op.setSourceProduct(product)
 	op.setGeoRegion(geom)
 	sub_product = op.getTargetProduct()
