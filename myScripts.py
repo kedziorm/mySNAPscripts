@@ -21,12 +21,11 @@
 #    ln -s ../amd64/libjhdf5.so
 
 # DO NOT forget that snappy for ESA SNAP is not Google library!!
-# Dokumentacja API do SNAP:
+# API SNAP documentation:
 # http://step.esa.int/docs/v3.0/apidoc/desktop/
 #############################################################
 
-import os
-import sys
+import os, sys
 reload(sys)  
 sys.setdefaultencoding('utf8')
 
@@ -66,8 +65,6 @@ from snappy import jpy
 from os.path import expanduser
 home = expanduser("~")
 SentinelPath = os.path.join(home, "Testy")
-SentinelFile = os.path.join(SentinelPath,
-"S1A_IW_GRDH_1SDV_20160512T161044_20160512T161109_011228_010FA8_C584.zip")
 smallFile = os.path.join(SentinelPath,"collocation/CLF33A_20160514_collocation_20160517_.data/Soil_Moisture_M.img")
 sampleDimFile = os.path.join(SentinelPath,"CLF33A_20160514_collocation_20160517_.dim")
 histogramDirectory = os.path.join(home,"Dropbox/DyzagregacjaSMOS/histograms")
