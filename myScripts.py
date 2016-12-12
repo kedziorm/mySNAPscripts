@@ -40,6 +40,8 @@ print(("Current _JAVA_OPTIONS: '" + os.environ.get('_JAVA_OPTIONS', 'Not Set')))
 print("will be changed to '-Xmx4096m' to avoid OutOfMemoryError")
 os.environ["_JAVA_OPTIONS"] = "-Xmx4096m"
 os.system('export _JAVA_OPTIONS=-Xmx4096m')
+# To enable Java core dumping:
+os.system('ulimit -c unlimited')
 
 ##### Global parameters:
 # output files format:
