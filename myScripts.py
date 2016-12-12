@@ -587,6 +587,7 @@ def getOperation(file1, file2, destination, operation, band=['Soil_Moisture','So
 	
 	# TODO: this should be handled in smarter way!!!
 	filetype = os.path.basename(file1).split("_")[3]
+	writeToLog("\t".join(["getOperation", "filetype:", "{0}".format(filetype)]), "info")
 	resultFile = getNewFileName(file1, file2, destination, operation[1], band[0], filetype, False, outType[0])
 	ProductIO.writeProduct(result, resultFile, outType[1])
 	for prod in products:
@@ -773,6 +774,7 @@ def getCollocated(file1, file2, destination):
 
 	# TODO: this should be handled in smarter way!!!
 	filetype = os.path.basename(file1).split("_")[3]
+	writeToLog("\t".join(["getCollocated", "filetype:", "{0}".format(filetype)]), "info")
 	destinationPath = getNewFileName(file1, file2, destination, "collocation", "", filetype,True)
 
 	if (not os.path.exists(destinationPath)):
