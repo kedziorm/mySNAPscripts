@@ -52,7 +52,7 @@ wkt = "POLYGON((23.00 52.00,24.00 52.00,24.00 52.25,23.00 52.25,23.00 52))"
 # TODO: add and use prefix for terrain corrected files.
 prefixes = ["calibrated", "subset"]
 # pixel spacing
-destinationPS = float(500)
+destinationPS = float(100)
 ## SMOS pixel size: Pixel Size = (0.260303676128387,-0.314965192009421)
 SMOSPS = 28963
 SentinelPS = 10.0
