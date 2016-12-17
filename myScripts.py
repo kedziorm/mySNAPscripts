@@ -32,7 +32,7 @@ sys.setdefaultencoding('utf8')
 # Set below-normal priority, so that computer remain responsive during computations
 # You can check how to do that on non-Unix like machines at:
 # http://stackoverflow.com/questions/1023038/change-process-priority-in-python-cross-platform
-os.nice(10)
+os.nice(20)
 
 # To avoid RuntimeError: java.lang.OutOfMemoryError: Java heap space
 print(("Current _JAVA_OPTIONS: '" + os.environ.get('_JAVA_OPTIONS', 'Not Set')))
