@@ -933,3 +933,39 @@ def getReprojected(file1, destinationPath, crs='EPSG:4326'):
 		writeToLog("\t".join(["getReprojected", "It seems that destination file '{0}' already exists. Bye!".format(os.path.basename(destinationPath))]),"WARNING")
 
 	return destinationPath
+
+def getMinMax(current,minV,maxV):
+	if current < minV:
+		minV = current
+	if current > maxV:
+		maxV = current
+	return [minV, maxV]
+
+def getExtent(file1):
+	########
+	## Get corner coordinates of the ESA SNAP product (get extent)
+	########
+	# int step - the step given in pixels
+	step = 1
+	minLon = 999.99
+
+	myProd = readProd(file1)
+	GeoPos = snappy.ProductUtils.createGeoBoundary(myProd, step)
+	
+	maxLon = -minLon
+	minLat = minLon
+	maxLat = maxLon
+	for element in GeoPos:
+		try:
+			lon = element.getLon()
+			[minLon, maxLon] = getMinMax(lon,minLon,maxLon)
+		except (NameError):
+			pass
+		try:
+			# TODO: separate method to get min and max
+			lat = element.getLat()
+			[minLat, maxLat] = getMinMax(lat,minLat,maxLat)
+		except (NameError):
+			pass
+	myProd.dispose()
+	return [minLon, maxLon, minLat, maxLat]
