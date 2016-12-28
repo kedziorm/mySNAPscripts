@@ -616,7 +616,8 @@ def getProductInfo(file1):
 	width = firstBand.getRasterWidth()
 	height = firstBand.getRasterHeight()
 	prod.dispose()
-	return "Bands: {0}, width = {1}, height = {2}".format(bandNames,width, height)
+	resolution = getProductRes(file1)
+	return "Bands: {0}, width = {1}, height = {2}, resolution = {3}".format(bandNames,width, height, resolution)
 
 def getBandFromProduct(file1, bandNumber):
 	import snappy
@@ -958,6 +959,7 @@ def getExtent(file1):
 	maxLon = -minLon
 	minLat = minLon
 	maxLat = maxLon
+	# TODO: probably there's better way to check min/max (?)
 	for element in GeoPos:
 		try:
 			lon = element.getLon()
@@ -979,6 +981,24 @@ def getExtentStr(file1):
 		array[i] = round(array[i],2)
 	return "Lon: {0} : {1}, Lat: {2} : {3}".format(array[0], array[1], array[2], array[3])
 
+def getProductRes(file1):
+	##
+	# Gets product resolution in geographical degrees
+	##
+	precision = 7
+	myProd = readProd(file1)
+	height = float(myProd.getSceneRasterHeight())
+	width = float(myProd.getSceneRasterWidth())
+	myProd.dispose()
+	#
+	[minLon, maxLon, minLat, maxLat] = getExtent(file1)
+	Lon = maxLon - minLon
+	Lat = maxLat - minLat
+	# TODO: THIS MUST BE FIXED!!!
+	# Tested on 'test_TIFF.tif' file in *this* repository
+	# For example: gdalinfo(test_TIFF.tif) shows me 'Pixel Size = (0.259366035461426,-0.316413879394531)'
+	# but this method returns: '0.2074928, 0.1582069'
+	return "{0}, {1}".format(round(Lon/width,precision), round(Lat/height,precision))
 
 # For testing purposes
 if os.path.isdir(snappyPath):
