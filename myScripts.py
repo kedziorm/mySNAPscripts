@@ -109,7 +109,7 @@ def ExecuteAndLog(command):
 def ExecLogStats(command, onlyStats=True, histPath="dyzagregowane"):
 	cmdName = command[0:command.index("(")]
 	product = ExecuteAndLog(command)
-	logTxt2 = "\t".join([cmdName,product,get_whole_Product_size(product)])
+	logTxt2 = "\t".join([cmdName,product,get_whole_Product_size(product),getExtentStr(product)])
 	writeToLog(logTxt2,"info")
 	if onlyStats:
 		getAllBandsStats(product)
@@ -978,8 +978,8 @@ def getExtent(file1):
 def getExtentStr(file1):
 	array = getExtent(file1)
 	for i in range(len(array)):
-		array[i] = round(array[i],2)
-	return "Lon: {0} : {1}, Lat: {2} : {3}".format(array[0], array[1], array[2], array[3])
+		array[i] = str(round(array[i],2))
+	return "\t".join(["Lon:",array[0], array[1],"Lat:", array[2], array[3]])
 
 def getProductRes(file1):
 	##
