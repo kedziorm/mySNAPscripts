@@ -65,6 +65,9 @@ from snappy import jpy
 # Sample file used in testing:
 from os.path import expanduser
 home = expanduser("~")
+snappyPath = os.path.join(home, ".snap/snap-python/snappy")
+testdataPath = os.path.join(snappyPath,"testdata")
+sampleData = os.path.join(testdataPath, "MER_FRS_L1B_SUBSET.dim")
 SentinelPath = os.path.join(home, "Testy")
 smallFile = os.path.join(SentinelPath,"collocation/CLF33A_20160514_collocation_20160517_.data/Soil_Moisture_M.img")
 sampleDimFile = os.path.join(SentinelPath,"CLF33A_20160514_collocation_20160517_.dim")
@@ -969,3 +972,21 @@ def getExtent(file1):
 			pass
 	myProd.dispose()
 	return [minLon, maxLon, minLat, maxLat]
+
+def getExtentStr(file1):
+	array = getExtent(file1)
+	for i in range(len(array)):
+		array[i] = round(array[i],2)
+	return "Lon: {0} : {1}, Lat: {2} : {3}".format(array[0], array[1], array[2], array[3])
+
+
+# For testing purposes
+if os.path.isdir(snappyPath):
+	print("testdataPath: '{0}', sampleData: '{1}'".format(testdataPath, sampleData))
+	print("\ngetExtentStr(sampleData):")
+	print(getExtentStr(sampleData))
+	print("\ngetProductInfo(sampleData):")
+	print(getProductInfo(sampleData))
+	print("\nYou can read sample data by typing: 'readProd(sampleData)'")
+else:
+	print("snappyPath: '{0}' is not a directory. Are you sure that you have installed ESA SNAP?".format(snappyPath))
