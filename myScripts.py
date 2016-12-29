@@ -282,13 +282,28 @@ def get_size(start_path = '.'):
 			total_size += os.path.getsize(fp)
 	return total_size
 
+def getExtInLower(file_path):
+	# Returns file extension in lower case
+	import os
+	return (os.path.splitext(file_path)[1]).lower()
+
 def get_whole_Product_size(file_path):
 	total_size = file_size_in_bytes(file_path)
-	if (os.path.splitext(file_path)[1] == '.dim'):
+	# According to Python documentation there's no 'switch' or 'select case' in Python:
+	# "An if ... elif ... elif ... sequence is a substitute for the switch or case statements found in other languages."
+	myExt = getExtInLower(file_path)
+	if (myExt == '.dim'):
 		total_size += get_size(get_data_path(file_path))
-	if (os.path.splitext(file_path)[1] == '.nc'):
+	elif (myExt == '.shp'):
+		shpExt = ['.dbf', '.prj', '.qix', '.qpj','.shx']
+		for ext in shpExt:
+			Shpfile = os.path.splitext(file_path)[0] + ext
+			total_size += get_size(Shpfile)
+	elif (myExt == '.nc'):
 		sFile =(os.path.splitext(file_path)[0]).replace("_1.DBL","").replace("ext-","") + '.HDR'
 		total_size += get_size(sFile)
+	else:
+		pass
 	return convert_bytes(total_size)
 
 def get_data_path(file_path):
