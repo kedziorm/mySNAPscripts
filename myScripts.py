@@ -50,7 +50,7 @@ SecondaryOutputType = [".tif", "GeoTIFF"]
 wkt = "POLYGON((23.00 52.00,24.00 52.00,24.00 52.25,23.00 52.25,23.00 52))"
 # prefixes added to file names:
 # TODO: add and use prefix for terrain corrected files.
-prefixes = ["calibrated", "subset"]
+prefixes = ["calibrated", "subset", "masked"]
 # pixel spacing
 destinationPS = float(100)
 ## SMOS pixel size: Pixel Size = (0.260303676128387,-0.314965192009421)
@@ -1056,6 +1056,44 @@ def addVectorToProduct(file1 = sampleSHP, file2 = sampleData, separateShapes = F
 		product = None
 	else:
 		writeToLog("\t".join(["addVectorToProduct", "It seems that vector file '{0}' *OR* SNAP product: '{1}' does NOT! exitst".format(file1, file2)]),"WARNING")
+	return destinationPath
+
+def getMasked(file1, maskFile=sampleSHP):
+	###
+	# Masks product (file1) using shapefile (maskFile) which defines water
+	###
+	# According to lveci: "For small areas like rivers and lake you will need it to be very precise. The lat/lons of the shape file will not be in the correct position in the SAR image if the image is in SAR geometry. You will need to apply the shape file after terrain correction or use to Update Georeference operator which does a sort of backwards geocoding into pixel bands.".
+	#http://forum.step.esa.int/t/import-vector-data-shapefile-from-snappy-python/4115
+
+	import snappy
+	from snappy import GPF
+	from snappy import ProductIO
+	destinationPath = newFilepath(file1, prefixes[2], False)
+	if (not os.path.exists(destinationPath)):
+		writeToLog("\t".join(["getMasked", "maskingSHP:",maskFile,str(get_whole_Product_size(maskFile))]),"info")
+		prodWithVector = addVectorToProduct(maskFile, file1, False)
+		writeToLog("\t".join(["getMasked", "prodWithVector:",prodWithVector,str(get_whole_Product_size(prodWithVector)),getExtentStr(prodWithVector)]),"info")
+		product = readProd(prodWithVector)
+		HashMap = jpy.get_type('java.util.HashMap')
+		GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
+		parameters = HashMap()
+		parameters.put('landMask', False)
+		parameters.put('useSRTM', True)
+		# TODO: Ensure that such geometry exists within file?
+		parameters.put('geometry', getGeometryName(maskFile))
+		parameters.put('invertGeometry', False)
+		parameters.put('byPass', False)
+		# ??!!! Here I receive:
+		# RuntimeError: org.esa.snap.core.gpf.OperatorException: expression: Undefined symbol 'Big_rivers_Poland'. due to Undefined symbol 'Big_rivers_Poland'.
+		result = GPF.createProduct('Land-Sea-Mask', parameters, product)
+		ProductIO.writeProduct(result,  destinationPath, 'BEAM-DIMAP')
+
+		product.dispose()
+		result.dispose()
+		parameters = None
+		product = None
+	else:
+		writeToLog("\t".join(["getMasked", "It seems that destination file '{0}' already exists. Bye!".format(os.path.basename(destinationPath))]),"WARNING")
 	return destinationPath
 
 # For testing purposes
