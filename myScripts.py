@@ -74,6 +74,7 @@ sampleDimFile = os.path.join(SentinelPath,"CLF33A_20160514_collocation_20160517_
 histogramDirectory = os.path.join(home,"Dropbox/DyzagregacjaSMOS/histograms")
 pathToSaveStats = os.path.join(home,"Dropbox/DyzagregacjaSMOS/BandStatistics.csv")
 maps = os.path.join(home,"Dropbox/DyzagregacjaSMOS/maps")
+sampleSHP = os.path.join(home,"Dropbox/rzeki/Big_rivers_Poland.shp")
 
 def isSNAPprod(prod):
 	return 'snap.core.datamodel.Product' in str(type(prod))
@@ -1005,6 +1006,42 @@ def getProductRes(file1):
 	# For example: gdalinfo(test_TIFF.tif) shows me 'Pixel Size = (0.259366035461426,-0.316413879394531)'
 	# but this method returns: '0.2074928, 0.1582069'
 	return "{0}, {1}".format(round(Lon/width,precision), round(Lat/height,precision))
+
+def getGeometryName(file1 = sampleSHP):
+	# It seems that when adding SHP using 'addVectorToProduct',
+	# SHP is available under 'Vector Data' in name which is consistent with SHP file name
+	return os.path.splitext(os.path.basename(file1))[0]
+
+def addVectorToProduct(file1 = sampleSHP, file2 = sampleData, separateShapes = False):
+	# Imports shapefile (file1) to SNAP product (file2) and save such product as a new .dim file (destinationPath)
+	import snappy
+	from snappy import jpy
+	from snappy import GPF
+	from snappy import ProductIO
+	if (os.path.isfile(file1) and (isSNAPprod(file2) or os.path.isfile(file2))):
+		# TODO: Improve this way of file naming (call function to generate name?)
+		destinationPath = file2 + getGeometryName(file1) + '.dim'
+		if os.path.isfile(destinationPath):
+			writeToLog("\t".join(["addVectorToProduct", "It seems that destination file '{0}' with imported vector already exists. Bye!".format(destinationPath)]),"WARNING")
+			return destinationPath
+		# Initially this method was called 'getVector', but it seems that I must provide product, so I renamed it.
+		product = readProd(file2)
+		HashMap = jpy.get_type('java.util.HashMap')
+		GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
+		parameters = HashMap()
+		parameters.put('vectorFile', file1)
+		parameters.put('separateShapes', separateShapes)
+	
+		result = GPF.createProduct('Import-Vector', parameters, product)
+		ProductIO.writeProduct(result,  destinationPath, 'BEAM-DIMAP')
+
+		product.dispose()
+		result.dispose()
+		parameters = None
+		product = None
+	else:
+		writeToLog("\t".join(["addVectorToProduct", "It seems that vector file '{0}' *OR* SNAP product: '{1}' does NOT! exitst".format(file1, file2)]),"WARNING")
+	return destinationPath
 
 # For testing purposes
 if os.path.isdir(snappyPath):
