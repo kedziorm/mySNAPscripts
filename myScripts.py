@@ -75,8 +75,14 @@ histogramDirectory = os.path.join(home,"Dropbox/DyzagregacjaSMOS/histograms")
 pathToSaveStats = os.path.join(home,"Dropbox/DyzagregacjaSMOS/BandStatistics.csv")
 maps = os.path.join(home,"Dropbox/DyzagregacjaSMOS/maps")
 
+def isSNAPprod(prod):
+	return 'snap.core.datamodel.Product' in str(type(prod))
+
 def readProd(file1):
 	import snappy, os
+	if isSNAPprod(file1):
+		# input parameter is already a SNAP product
+		return file1
 	if os.path.isfile(file1):
 		prod = snappy.ProductIO.readProduct(file1)
 	elif os.path.exists(file1):
