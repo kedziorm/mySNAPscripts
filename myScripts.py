@@ -74,7 +74,8 @@ sampleDimFile = os.path.join(SentinelPath,"CLF33A_20160514_collocation_20160517_
 histogramDirectory = os.path.join(home,"Dropbox/DyzagregacjaSMOS/histograms")
 pathToSaveStats = os.path.join(home,"Dropbox/DyzagregacjaSMOS/BandStatistics.csv")
 maps = os.path.join(home,"Dropbox/DyzagregacjaSMOS/maps")
-sampleSHP = os.path.join(home,"Dropbox/rzeki/Big_rivers_Poland.shp")
+# TODO: Use smaller shapefile? Subset shapefile?
+sampleSHP = os.path.join(home,"Dropbox/rzeki/waters_MPHP.shp")
 
 def isSNAPprod(prod):
 	return 'snap.core.datamodel.Product' in str(type(prod))
@@ -1077,15 +1078,24 @@ def getMasked(file1, maskFile=sampleSHP):
 		HashMap = jpy.get_type('java.util.HashMap')
 		GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
 		parameters = HashMap()
-		parameters.put('landMask', False)
+		#parameters.put('landMask', False)
 		parameters.put('useSRTM', True)
 		# TODO: Ensure that such geometry exists within file?
 		parameters.put('geometry', getGeometryName(maskFile))
-		parameters.put('invertGeometry', False)
+		parameters.put('invertGeometry', True)
 		parameters.put('byPass', False)
-		# ??!!! Here I receive:
-		# RuntimeError: org.esa.snap.core.gpf.OperatorException: expression: Undefined symbol 'Big_rivers_Poland'. due to Undefined symbol 'Big_rivers_Poland'.
-		result = GPF.createProduct('Land-Sea-Mask', parameters, product)
+		try:
+			result = GPF.createProduct('Land-Sea-Mask', parameters, product)
+		# This is mainly for handling 'org.esa.snap.core.gpf.OperatorException: expression: Undefined symbol'
+		except Exception, e:
+			writeToLog("\t".join(["getMasked", "!!!!! Error - please ensure that vector data '{0}' which you use for masking is located *within* the scene boundaries".format(getGeometryName(maskFile)) ]))
+			print("\n")
+			writeToLog("\t".join(["getMasked",str(e) ]))
+			print("\n")
+			writeToLog("\t".join(["getMasked", "I will return *NOT* masked data" ]))
+			product.dispose()
+			return prodWithVector
+
 		ProductIO.writeProduct(result,  destinationPath, 'BEAM-DIMAP')
 
 		product.dispose()
