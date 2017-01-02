@@ -105,8 +105,8 @@ def isBandInProd(bandName, product):
 
 def getStatsAndHist(inputFile,directorySuffix = None):
 	getAllBandsStats(inputFile)
-	saveHistForFiles(inputFile,"Values", "Probability", None, "eng",directorySuffix)
-	saveHistForFiles(inputFile,"Wartości", "Prawdopodobieństwo", None, "pl",directorySuffix)
+	saveHistForFiles(inputFile,"Values", "Frequency", None, "eng",directorySuffix)
+	saveHistForFiles(inputFile,"Wartości", "Liczebność", None, "pl",directorySuffix)
 
 def ExecuteAndLog(command):
 	cmdName = command[0:command.index("(")]
@@ -729,7 +729,7 @@ def getMetadataValueFromHdr(hdr_file, HDRkey = 'data gain values'):
 	else:
 		return None
 
-def saveHistForFiles(file1, xtitle="Values", ytitle="Probability", title="Band: ", suffix="eng",directorySuffix = None):
+def saveHistForFiles(file1, xtitle="Values", ytitle="Frequency", title="Band: ", suffix="eng",directorySuffix = None):
 	# This just executes 'saveHistogramForFile' function below
 	import glob
 	if (os.path.splitext(file1)[1] == '.dim'):
@@ -739,11 +739,11 @@ def saveHistForFiles(file1, xtitle="Values", ytitle="Probability", title="Band: 
 	else:
 		saveHistogramForFile(file1, xtitle, ytitle, title, suffix,directorySuffix)
 
-def saveHistogramForFile(file1, xtitle="Values", ytitle="Probability", title=None, suffix="eng",directorySuffix = None):
+def saveHistogramForFile(file1, xtitle="Values", ytitle="Frequency", title=None, suffix="eng",directorySuffix = None):
 	# LIMITATIONS: This is *not* working with .dim files
 	# Sample usage:
 	# saveHistogramForFile(smallFile)
-	# saveHistogramForFile(smallFile, "Wartości", "Prawdopodobieństwo", "Pasmo: ", "pl")
+	# saveHistogramForFile(smallFile, "Wartości", "Liczebność", "Pasmo: ", "pl")
 	from osgeo import gdal
 	import numpy as np
 
