@@ -739,6 +739,23 @@ def saveHistForFiles(file1, xtitle="Values", ytitle="Frequency", title="Band: ",
 	else:
 		saveHistogramForFile(file1, xtitle, ytitle, title, suffix,directorySuffix)
 
+def getHistNewFileName(file1):
+	return os.path.split(os.path.split(file1)[0])[1] + os.path.basename(file1) + "_hist_" + suffix + ".svg"
+
+def getHistNewFullPath(NewFileName, histogramDirectory, directorySuffix = None):
+	directory = histogramDirectory
+	if (not directorySuffix == None):
+		directory = os.path.join(directory,directorySuffix)
+	if not os.path.exists(directory):
+		os.makedirs(directory)
+	NewFullPath = os.path.join(directory,NewFileName)
+	return NewFullPath
+
+def getHistFilePath(file1):
+	NewFileName = getHistNewFileName(file1)
+	NewFullPath = getHistNewFullPath(NewFileName,histogramDirectory, directorySuffix)
+	return NewFullPath
+
 def saveHistogramForFile(file1, xtitle="Values", ytitle="Frequency", title=None, suffix="eng",directorySuffix = None):
 	# LIMITATIONS: This is *not* working with .dim files
 	# Sample usage:
@@ -785,13 +802,7 @@ def saveHistogramForFile(file1, xtitle="Values", ytitle="Frequency", title=None,
 	if (not title == None):
 		plt.title(title)
 	plt.grid(True)
-	NewFileName = os.path.split(os.path.split(file1)[0])[1] + os.path.basename(file1) + "_hist_" + suffix + ".svg"
-	directory = histogramDirectory
-	if (not directorySuffix == None):
-		directory = os.path.join(directory,directorySuffix)
-	if not os.path.exists(directory):
-		os.makedirs(directory)
-	NewFullPath = os.path.join(directory,NewFileName)
+	NewFullPath = getHistFilePath(file1)
 	plt.savefig(NewFullPath)
 	#plt.savefig(os.path.splitext(NewFullPath)[0] + '.pdf')
 	plt.clf()
