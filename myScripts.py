@@ -46,6 +46,8 @@ os.system('ulimit -c unlimited')
 # output files format:
 OutputType = [".dim", "BEAM-DIMAP"]
 SecondaryOutputType = [".tif", "GeoTIFF"]
+log_path = os.path.join(os.path.expanduser("~"),'Dropbox/DyzagregacjaSMOS/logi.log')
+pathToSaveStats = os.path.join(home,"Dropbox/DyzagregacjaSMOS/BandStatistics.csv")
 # Area - Polygon should describe part of the Eastern Poland
 wkt = "POLYGON((23.00 52.00,24.00 52.00,24.00 52.25,23.00 52.25,23.00 52))"
 # prefixes added to file names:
@@ -56,6 +58,12 @@ destinationPS = float(100)
 ## SMOS pixel size: Pixel Size = (0.260303676128387,-0.314965192009421)
 SMOSPS = 28963
 SentinelPS = 10.0
+histLabels = ["Values", "Frequency", "Wartości", "Liczebność"]
+createMAPparams = [22.75, 51.75, 24.25, 52.25]
+getTerrainCorrected_demResamplingMethod = "BILINEAR_INTERPOLATION"
+getTerrainCorrected_imgResamplingMethod = "BILINEAR_INTERPOLATION"
+getCollocatedResamplingType = "NEAREST_NEIGHBOUR"
+getReprojectedResampling = "Nearest"
 
 import snappy
 from snappy import ProductIO
@@ -105,8 +113,8 @@ def isBandInProd(bandName, product):
 
 def getStatsAndHist(inputFile,directorySuffix = None):
 	getAllBandsStats(inputFile)
-	saveHistForFiles(inputFile,"Values", "Frequency", None, "eng",directorySuffix)
-	saveHistForFiles(inputFile,"Wartości", "Liczebność", None, "pl",directorySuffix)
+	saveHistForFiles(inputFile,histLabels[0], histLabels[1], None, "eng",directorySuffix)
+	saveHistForFiles(inputFile,histLabels[2], histLabels[3], None, "pl",directorySuffix)
 
 def ExecuteAndLog(command):
 	cmdName = command[0:command.index("(")]
@@ -246,9 +254,8 @@ def getNewFileName(SMOSfile1, SMOSfile2, destination, operation, band, filetype,
 	"_".join([filetype, date1, operation, date2,band]) + OutTyp)
 
 
-def writeToLog(message, messageType='ERROR'):
+def writeToLog(message, messageType='ERROR', log_path = log_path):
 	import logging,os
-	log_path = os.path.join(os.path.expanduser("~"),'Dropbox/DyzagregacjaSMOS/logi.log')
 	logger = logging.getLogger('Dyzagregacja')
 	hdlr = logging.FileHandler(log_path)
 	formatter = logging.Formatter('%(asctime)s\t%(levelname)s\t%(message)s', datefmt='%H:%M:%S')
@@ -462,7 +469,7 @@ def createMap(raster, vmax, vmin, output, shapefile=None, title=None):
 		# TODO: Remove temporal raster?
 		#########################################################
 	#23.00 52.00,24.00 52.00,24.00 52.25,23.00 52.25,23.00 52
-	m = Basemap(llcrnrlon=22.75,llcrnrlat=51.75,urcrnrlon=24.25,urcrnrlat=52.25)
+	m = Basemap(llcrnrlon=createMAPparams[0],llcrnrlat=createMAPparams[1],urcrnrlon=createMAPparams[2],urcrnrlat=createMAPparams[3])
 	#m = Basemap(llcrnrlon=17.00,llcrnrlat=48.75,urcrnrlon=25.25,urcrnrlat=54.50)
 
 	if shapefile is not None:
@@ -526,6 +533,8 @@ def getSigma(SentinelFile):
 			snappy.ProductIO.writeProduct(targetProduct, newFile, OutputType[1])
 			sourceProduct.dispose()
 			targetProduct.dispose()
+			del CalOp
+			del CalibrationOp
 		else:
 			writeToLog("\t".join(["getSigma", "File already exists. Exit without changes."]),"WARNING")
 		return newFile
@@ -552,6 +561,8 @@ def getSubset(SentinelFile):
 		ProductIO.writeProduct(sub_product, newFile, OutputType[1])
 	product.dispose()
 	sub_product.dispose()
+	del op
+	del SubsetOp
 	return newFile
 
 
@@ -666,10 +677,8 @@ def getBandRawData(file1,bandNumber):
 	Band.readRasterDataFully()
 	return Band.getRasterData().getElems()
 
-def getAllBandsStats(file1):
+def getAllBandsStats(file1, pathToSaveStats = pathToSaveStats):
 	import snappy
-	# TODO: FIX THIS UGLY HARDCODE:
-	pathToSaveStats = os.path.join(home,"Dropbox/DyzagregacjaSMOS/BandStatistics.csv")
 	# TODO: When I try to read 'Soil_Moisture_M.img' directly (not hdr file), I receive a NoneType object
 	prod = readProd(file1)
 	if (not prod):
@@ -832,7 +841,7 @@ def getCollocated(file1, file2, destination):
 		parameters.put('renameSlaveComponents', True)
 		parameters.put('masterComponentPattern', "${ORIGINAL_NAME}_M")
 		parameters.put('slaveComponentPattern', "${ORIGINAL_NAME}_S")
-		parameters.put('resamplingType', "NEAREST_NEIGHBOUR")
+		parameters.put('resamplingType', getCollocatedResamplingType)
 		
 		result = GPF.createProduct('Collocate', parameters, sourceProducts)
 		ProductIO.writeProduct(result,  destinationPath, 'BEAM-DIMAP')
@@ -842,7 +851,7 @@ def getCollocated(file1, file2, destination):
 		result.dispose()
 		sourceProducts = None
 		parameters = None
-		writeToLog("\t".join(["getCollocated", "Input files: {0}, {1}".format(getProductInfo(file1),getProductInfo(file2))]),"info")
+		writeToLog("\t".join(["getCollocated", "Input files\t{0}\t{1}\tresamplingType\t{3}".format(getProductInfo(file1),getProductInfo(file2), getCollocatedResamplingType)]),"info")
 		writeToLog("\t".join(["getCollocated", "Collocated product saved as '{0}' \t {1}".format(os.path.basename(destinationPath), get_whole_Product_size(destinationPath))]),"info")
 	else:
 		writeToLog("\t".join(["getCollocated", "It seems that destination file '{0}' already exists. Bye!".format(os.path.basename(destinationPath))]),"WARNING")
@@ -919,12 +928,12 @@ def getTerrainCorrected(file1, destinationPath, crs='WGS84(DD)'):
 		DEM = "SRTM 3Sec"
 		HashMap = jpy.get_type('java.util.HashMap')
 		GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
-		writeToLog("\t".join(["getTerrainCorrected", "DEM:",DEM,"destination (m):", str(destinationPS)]),"info")
+		writeToLog("\t".join(["getTerrainCorrected", "DEM:",DEM,"destination (m):", str(destinationPS), "demResamplingMethod", getTerrainCorrected_demResamplingMethod, "imgResamplingMethod", getTerrainCorrected_imgResamplingMethod]),"info")
 		parameters = HashMap()
 		parameters.put('demName', DEM)
 		parameters.put('externalDEMApplyEGM', True)
-		parameters.put('demResamplingMethod', "BILINEAR_INTERPOLATION")
-		parameters.put('imgResamplingMethod', "BILINEAR_INTERPOLATION")
+		parameters.put('demResamplingMethod', getTerrainCorrected_demResamplingMethod)
+		parameters.put('imgResamplingMethod', getTerrainCorrected_imgResamplingMethod)
 		parameters.put('pixelSpacingInMeter', float(destinationPS))
 		parameters.put('mapProjection', crs)
 		parameters.put('nodataValueAtSea', True)
@@ -960,7 +969,7 @@ def getReprojected(file1, destinationPath, crs='EPSG:4326'):
 
 		parameters = HashMap()
 		parameters.put('crs', crs)
-		parameters.put('resampling', "Nearest")
+		parameters.put('resampling', getReprojectedResampling)
 		result = GPF.createProduct('Reproject', parameters, product)
 		ProductIO.writeProduct(result,  destinationPath, 'BEAM-DIMAP')
 		product.dispose()
