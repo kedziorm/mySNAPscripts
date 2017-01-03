@@ -733,7 +733,7 @@ def saveHistForFiles(file1, xtitle="Values", ytitle="Frequency", title="Band: ",
 	else:
 		saveHistogramForFile(file1, xtitle, ytitle, title, suffix,directorySuffix)
 
-def getHistNewFileName(file1):
+def getHistNewFileName(file1, suffix = "pl"):
 	return os.path.split(os.path.split(file1)[0])[1] + os.path.basename(file1) + "_hist_" + suffix + ".svg"
 
 def getHistNewFullPath(NewFileName, histogramDirectory, directorySuffix = None):
@@ -745,8 +745,8 @@ def getHistNewFullPath(NewFileName, histogramDirectory, directorySuffix = None):
 	NewFullPath = os.path.join(directory,NewFileName)
 	return NewFullPath
 
-def getHistFilePath(file1):
-	NewFileName = getHistNewFileName(file1)
+def getHistFilePath(file1, suffix = "pl", directorySuffix = None):
+	NewFileName = getHistNewFileName(file1, suffix)
 	NewFullPath = getHistNewFullPath(NewFileName,histogramDirectory, directorySuffix)
 	return NewFullPath
 
@@ -796,7 +796,7 @@ def saveHistogramForFile(file1, xtitle="Values", ytitle="Frequency", title=None,
 	if (not title == None):
 		plt.title(title)
 	plt.grid(True)
-	NewFullPath = getHistFilePath(file1)
+	NewFullPath = getHistFilePath(file1, suffix, directorySuffix)
 	plt.savefig(NewFullPath)
 	#plt.savefig(os.path.splitext(NewFullPath)[0] + '.pdf')
 	plt.clf()
