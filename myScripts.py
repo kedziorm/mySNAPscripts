@@ -734,7 +734,8 @@ def saveHistForFiles(file1, xtitle="Values", ytitle="Frequency", title="Band: ",
 		saveHistogramForFile(file1, xtitle, ytitle, title, suffix,directorySuffix)
 
 def getHistNewFileName(file1, suffix = "pl"):
-	return os.path.split(os.path.split(file1)[0])[1] + os.path.basename(file1) + "_hist_" + suffix + ".svg"
+	# Since LaTeX has problems with svg support, I'm saving in PDF
+	return os.path.split(os.path.split(file1)[0])[1] + os.path.basename(file1) + "_hist_" + suffix + ".pdf"
 
 def getHistNewFullPath(NewFileName, histogramDirectory, directorySuffix = None):
 	directory = histogramDirectory
