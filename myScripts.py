@@ -29,6 +29,14 @@ import os, sys
 reload(sys)  
 sys.setdefaultencoding('utf8')
 
+import snappy
+from snappy import ProductIO
+#from snappy import GPF
+from snappy import jpy
+
+from os.path import expanduser
+home = expanduser("~")
+
 # Set below-normal priority, so that computer remain responsive during computations
 # You can check how to do that on non-Unix like machines at:
 # http://stackoverflow.com/questions/1023038/change-process-priority-in-python-cross-platform
@@ -42,14 +50,23 @@ os.system('export _JAVA_OPTIONS=-Xmx4096m')
 # To enable Java core dumping:
 os.system('ulimit -c unlimited')
 
+# Sample file used in testing:
+snappyPath = os.path.join(home, ".snap/snap-python/snappy")
+testdataPath = os.path.join(snappyPath,"testdata")
+sampleData = os.path.join(testdataPath, "MER_FRS_L1B_SUBSET.dim")
+
+########################################################
 ##### Global parameters:
 # output files format:
 OutputType = [".dim", "BEAM-DIMAP"]
 SecondaryOutputType = [".tif", "GeoTIFF"]
 log_path = os.path.join(os.path.expanduser("~"),'Dropbox/DyzagregacjaSMOS/logi.log')
 pathToSaveStats = os.path.join(home,"Dropbox/DyzagregacjaSMOS/BandStatistics.csv")
-# Area - Polygon should describe part of the Eastern Poland
-wkt = "POLYGON((23.00 52.00,24.00 52.00,24.00 52.25,23.00 52.25,23.00 52))"
+# Area - sample polygon below should describe part of the Eastern Poland
+myExtent = [23.00, 52.00, 24.00, 52.25]
+constBorder = 0.25
+wkt = "POLYGON(({0:.2f} {1:.2f},{2:.2f} {1:.2f},{2:.2f} {3:.2f},{0:.2f} {3:.2f},{0:.2f} {4}))".format(myExtent[0], myExtent[1], myExtent[2], myExtent[3], int(myExtent[1]))
+createMAPparams = [myExtent[0] - constBorder, myExtent[1] - constBorder, myExtent[2] + constBorder, myExtent[3]]
 # prefixes added to file names:
 # TODO: add and use prefix for terrain corrected files.
 prefixes = ["calibrated", "subset", "masked"]
@@ -59,31 +76,18 @@ destinationPS = float(100)
 SMOSPS = 28963
 SentinelPS = 10.0
 histLabels = ["Values", "Frequency", "Wartości", "Liczebność"]
-createMAPparams = [22.75, 51.75, 24.25, 52.25]
-getTerrainCorrected_demResamplingMethod = "BILINEAR_INTERPOLATION"
-getTerrainCorrected_imgResamplingMethod = "BILINEAR_INTERPOLATION"
-getCollocatedResamplingType = "NEAREST_NEIGHBOUR"
+getTerrainCorrected_DEM = "SRTM 3Sec" # Possible also: "ASTER 1sec GDEM", "SRTM 1Sec Grid", "ACE30"
+getTerrainCorrected_demResamplingMethod = "BILINEAR_INTERPOLATION" # Possible also: "NEAREST_NEIGHBOUR", "CUBIC_CONVOLUTION", "BICUBIC_INTERPOLATION"
+getTerrainCorrected_imgResamplingMethod = "BILINEAR_INTERPOLATION" # Possible also: "NEAREST_NEIGHBOUR", "CUBIC_CONVOLUTION", "BICUBIC_INTERPOLATION"
+getCollocatedResamplingType = "NEAREST_NEIGHBOUR" # Possible also: "BILINEAR_INTERPOLATION", "CUBIC_CONVOLUTION", "BISINC_CONVOLUTION"
 getReprojectedResampling = "Nearest"
 
-import snappy
-from snappy import ProductIO
-#from snappy import GPF
-from snappy import jpy
-
-# Sample file used in testing:
-from os.path import expanduser
-home = expanduser("~")
-snappyPath = os.path.join(home, ".snap/snap-python/snappy")
-testdataPath = os.path.join(snappyPath,"testdata")
-sampleData = os.path.join(testdataPath, "MER_FRS_L1B_SUBSET.dim")
 SentinelPath = os.path.join(home, "Testy")
-smallFile = os.path.join(SentinelPath,"collocation/CLF33A_20160514_collocation_20160517_.data/Soil_Moisture_M.img")
-sampleDimFile = os.path.join(SentinelPath,"CLF33A_20160514_collocation_20160517_.dim")
 histogramDirectory = os.path.join(home,"Dropbox/DyzagregacjaSMOS/histograms")
-pathToSaveStats = os.path.join(home,"Dropbox/DyzagregacjaSMOS/BandStatistics.csv")
 maps = os.path.join(home,"Dropbox/DyzagregacjaSMOS/maps")
 # TODO: Use smaller shapefile? Subset shapefile?
 sampleSHP = os.path.join(home,"Dropbox/rzeki/waters_MPHP.shp")
+########################################################
 
 def isSNAPprod(prod):
 	return 'snap.core.datamodel.Product' in str(type(prod))
@@ -925,12 +929,11 @@ def getTerrainCorrected(file1, destinationPath, crs='WGS84(DD)'):
 	if (not os.path.exists(destinationPath)):
 		product = readProd(file1)
 		
-		DEM = "SRTM 3Sec"
 		HashMap = jpy.get_type('java.util.HashMap')
 		GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
-		writeToLog("\t".join(["getTerrainCorrected", "DEM:",DEM,"destination (m):", str(destinationPS), "demResamplingMethod", getTerrainCorrected_demResamplingMethod, "imgResamplingMethod", getTerrainCorrected_imgResamplingMethod]),"info")
+		writeToLog("\t".join(["getTerrainCorrected", "DEM:",getTerrainCorrected_DEM,"destination (m):", str(destinationPS), "demResamplingMethod", getTerrainCorrected_demResamplingMethod, "imgResamplingMethod", getTerrainCorrected_imgResamplingMethod]),"info")
 		parameters = HashMap()
-		parameters.put('demName', DEM)
+		parameters.put('demName', getTerrainCorrected_DEM)
 		parameters.put('externalDEMApplyEGM', True)
 		parameters.put('demResamplingMethod', getTerrainCorrected_demResamplingMethod)
 		parameters.put('imgResamplingMethod', getTerrainCorrected_imgResamplingMethod)
