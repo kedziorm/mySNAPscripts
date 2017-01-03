@@ -836,7 +836,7 @@ def getCollocated(file1, file2, destination):
 		result.dispose()
 		sourceProducts = None
 		parameters = None
-		writeToLog("\t".join(["getCollocated", "Input files\t{0}\t{1}\tresamplingType\t{3}".format(getProductInfo(file1),getProductInfo(file2), getCollocatedResamplingType)]),"info")
+		writeToLog("\t".join(["getCollocated", "Input files\t{0}\t{1}\tresamplingType\t{2}".format(getProductInfo(file1),getProductInfo(file2), getCollocatedResamplingType)]),"info")
 		writeToLog("\t".join(["getCollocated", "Collocated product saved as '{0}' \t {1}".format(os.path.basename(destinationPath), get_whole_Product_size(destinationPath))]),"info")
 	else:
 		writeToLog("\t".join(["getCollocated", "It seems that destination file '{0}' already exists. Bye!".format(os.path.basename(destinationPath))]),"WARNING")
