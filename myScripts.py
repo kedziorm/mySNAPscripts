@@ -473,6 +473,9 @@ def createMap(raster, vmax, vmin, output, shapefile=None, title=None):
 	if title is not None:
 		plt.title(title)
 	plt.savefig(output) # to take less space add: bbox_inches='tight', pad_inches=0
+	# Clear and then close the figure:
+	plt.clf()
+	plt.close()
 
 def createMAPsForFolder(path, fileMask, outputPath, fileName, whatADD=[], shapefile=None):
 	import fnmatch
@@ -799,8 +802,9 @@ def saveHistogramForFile(file1, xtitle="Values", ytitle="Frequency", title=None,
 	plt.grid(True)
 	NewFullPath = getHistFilePath(file1, suffix, directorySuffix)
 	plt.savefig(NewFullPath)
-	#plt.savefig(os.path.splitext(NewFullPath)[0] + '.pdf')
+	# Clear and then close the figure:
 	plt.clf()
+	plt.close()
 
 
 def getCollocated(file1, file2, destination):
