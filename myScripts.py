@@ -99,7 +99,7 @@ def isBandInProd(bandName, product):
 def getStatsAndHist(inputFile,directorySuffix = None):
 	getAllBandsStats(inputFile)
 	saveHistForFiles(inputFile,histLabels[0], histLabels[1], None, "eng",directorySuffix)
-	saveHistForFiles(inputFile,histLabels[2], histLabels[3], None, "pl",directorySuffix)
+	saveHistForFiles(inputFile,"Wartości", "Liczebność", None, "pl",directorySuffix)
 
 def ExecuteAndLog(command):
 	cmdName = command[0:command.index("(")]
