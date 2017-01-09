@@ -333,6 +333,32 @@ def removeProduct(file_path):
 	else:
 		writeToLog("\t".join(["removeProduct", "Trying to remove non-existing file: {0}".format(file_path)]),"warning")
 
+def isFontAvailable(font = 'Arial'):
+	# Checks if font is installed within the system
+	# Sample usage: isFontAvailable('DejaVu Sans') OR isFontAvailable('sans-serif')
+	installed = True
+	import matplotlib.pyplot as plt
+	import warnings
+
+	with warnings.catch_warnings(record=True) as w:
+		warnings.simplefilter("always")
+		plt.rcParams['font.family'] = font
+		plt.text(0,0,font)
+		plt.savefig(font+'.png')
+
+		if len(w):
+			installed = False
+	return installed
+
+def getFontForName():
+	if isFontAvailable('Arial'):
+		return 'Arial'
+	elif isFontAvailable('DejaVu Sans'):
+		return 'DejaVu Sans'
+	else:
+		writeToLog("getFontForName - There's no 'Arial' and 'DejaVu Sans' fonts, returning 'sans-serif'","warning")
+		return 'sans-serif'
+
 def createMap(raster, vmax, vmin, output, shapefile=None, title=None):
 	###################################################################
 	# Author: Mateusz Kędzior
@@ -368,7 +394,7 @@ def createMap(raster, vmax, vmin, output, shapefile=None, title=None):
 	
 	# Set font which contains polish characters:
 	import matplotlib
-	matplotlib.rc('font', family='Arial')
+	matplotlib.rc('font', family=getFontForName())
 
 	from osgeo import gdal, osr
 	import matplotlib.pyplot as plt
@@ -764,7 +790,7 @@ def saveHistogramForFile(file1, xtitle="Values", ytitle="Frequency", title=None,
 
 	# Set font which contains polish characters:
 	import matplotlib
-	matplotlib.rc('font', family='Arial')
+	matplotlib.rc('font', family=getFontForName())
 
 	import matplotlib.mlab as mlab
 	import matplotlib.pyplot as plt
