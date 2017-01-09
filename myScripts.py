@@ -541,7 +541,7 @@ def getSubset(SentinelFile):
 	op.setGeoRegion(geom)
 	sub_product = op.getTargetProduct()
 	# Ensure that file does not exists:
-	newFile = newFilepath(SentinelFile, prefixes[1])
+	newFile = newFilepath(SentinelFile, prefixes[1], False)
 	if os.path.exists(newFile):
 		writeToLog("\t".join(["getSubset", "It seems that subset of your data already exists. Bye!"]),"WARNING")
 	else:
