@@ -6,6 +6,7 @@
 ########################################################
 ##### Global parameters:
 # Area - sample polygon below should describe part of the Eastern Poland
+# Derlo station coordinates: 52.16950    23.36930
 myExtent = [23.00, 52.00, 24.00, 52.25]
 constBorder = 0.25
 wkt = "POLYGON(({0:.2f} {1:.2f},{2:.2f} {1:.2f},{2:.2f} {3:.2f},{0:.2f} {3:.2f},{0:.2f} {4}))".format(myExtent[0], myExtent[1], myExtent[2], myExtent[3], int(myExtent[1]))
