@@ -551,13 +551,21 @@ def getSubset(SentinelFile):
 	del SubsetOp
 	return newFile
 
-def getSMI(file1, WP = 0.01, FC = 0.89, band=None ):
+def getSMI(file1, WP = 0.108, FC = 0.319, band=None ):
 	####
 	# Calculates Soil Moisture Index (according to Hunt et al. 2009):
 	# FAW = (mv − WP )/(FC − WP )     SMI = −5 + 10*FAW
 	# mv - current volumetric water content
 	# WP - volumetric water content for wilting point
 	# FC - volumetric water content for field capacity
+	####
+	# For following period of time: 2013-04-16 2015-12-22
+	# On station Derlo, in vegetational period (May - October)
+	# we had following values of percentiles:
+	#     2013   2014  2015 2013 - 2015
+	#5%  0.114 0.1220 0.099       0.108
+	#95% 0.344 0.3142 0.296       0.319
+	# and they're used as default values
 	####
 	import snappy
 	from snappy import GPF
