@@ -432,59 +432,31 @@ def createMap(raster, vmax, vmin, output, shapefile=None, title=None):
 	if (xsize < 5000):
 		data = gdata.ReadAsArray()
 		data = data * factor
-		writeToLog("\t".join(["createMap", 'Whole data min: {0}, max: {1}, mean: {2}.'.format(data.min(), data.max(), data.mean())]),"info")
+		# 'data.min()' might return NaN, so I use 'np.nanmin(data)' instead
+		writeToLog("\t".join(["createMap", 'Whole data min: {0}, max: {1}, mean: {2}.'.format(np.nanmin(data), np.nanmax(data), np.nanmean(data))]),"info")
 	else:
-		#########################################################
-		## TODO: for big rasters such as Sentinel-1:
-		## Solution adapted from http://gis.stackexchange.com/questions/211611/python-gdal-handling-big-rasters-and-avoid-memoryerrors
-		## It seems that I still receive Memory Error 
-		y_block_size_NEW = int(round(y_block_size/200)) if y_block_size > 200 else y_block_size
-		x_block_size_NEW = int(round(x_block_size/200)) if x_block_size > 200 else x_block_size
-
-		# Create temporal raster
-		raster_srs = osr.SpatialReference()
-		raster_srs.ImportFromWkt(gdata.GetProjectionRef())
-
-		format = "GTiff"
-		driver = gdal.GetDriverByName( format )
-		# TODO: seems that I should create smaller temporal raster (?)
-		dst_ds = driver.Create("original_blocks.tif", xsize, ysize, 1, band.DataType )
-
-		dst_ds.SetGeoTransform(geo)
-		dst_ds.SetProjection(raster_srs.ExportToWkt())
-
-		blocks = 0 
-		for y in xrange(0, ysize, y_block_size_NEW):
-			#print blocks
-			if y + y_block_size_NEW < ysize:
-				rows = y_block_size_NEW
-			else:
-				rows = ysize - y
-			for x in xrange(0, xsize, x_block_size_NEW):
-				if x + x_block_size_NEW < xsize:
-					cols = x_block_size_NEW	
-				else:
-					cols = xsize - x
-				# Seems that some kind of average should be calculated here
-				array = band.ReadAsArray(x, y, cols, rows)
-				try:
-					array[array>0]=1
-					#print "we got them"
-				except:
-					print "could not find them"
-				dst_ds.GetRasterBand(1).WriteArray(array, x, y)
-				del array
-				blocks += 1
-
-		data = dst_ds.ReadAsArray() * factor
-		# TODO: Remove temporal raster?
-		#########################################################
-	#23.00 52.00,24.00 52.00,24.00 52.25,23.00 52.25,23.00 52
+		writeToLog("\t".join(["createMap", "I was unable to create map, becuase of the xsize"]))
+		return
 	m = Basemap(llcrnrlon=createMAPparams[0],llcrnrlat=createMAPparams[1],urcrnrlon=createMAPparams[2],urcrnrlat=createMAPparams[3])
+	# draw coastlines, state and country boundaries, edge of map.
+	#m.drawcoastlines()
+	#m.drawstates()
+	#m.drawcountries()
+	# draw parallels.
+	parallels = np.arange(0.,90,0.25)
+	m.drawparallels(parallels,labels=[1,0,0,0],fontsize=11)
+	# draw meridians
+	meridians = np.arange(0.,90.,0.25)
+	#  labels - list of 4 values (default [0,0,0,0]) that control whether meridians are labelled where they intersect the left, right, top or bottom of the plot. For example labels=[1,0,0,1] will cause meridians to be labelled where they intersect the left and and bottom of the plot, but not the right and top
+	m.drawmeridians(meridians,labels=[0,0,0,1],fontsize=11)
+	ny = data.shape[0]; nx = data.shape[1]
+	lons, lats = m.makegrid(nx, ny) # get lat/lons of ny by nx evenly space grid.
 	#m = Basemap(llcrnrlon=17.00,llcrnrlat=48.75,urcrnrlon=25.25,urcrnrlat=54.50)
 
 	if shapefile is not None:
 		m.readshapefile(shapefile,'shp',drawbounds=True, color='0.3')
+		for info, shp in zip(m.shp_info, m.shp):
+			m.plot(shp[0], shp[1], marker='+', markersize=8, markeredgewidth=2)
 	xmin = geo[0] + xres * 0.5
 	xmax = geo[0] + (xres * gdata.RasterXSize) - xres * 0.5
 	ymin = geo[3] + (yres * gdata.RasterYSize) + yres * 0.5
@@ -495,10 +467,10 @@ def createMap(raster, vmax, vmin, output, shapefile=None, title=None):
 	cmap.set_under ('1.0')
 	cmap.set_bad('0.8')
 	im = m.pcolormesh(x,y, data.T, cmap=cmap, vmin=vmin, vmax=vmax)
-	cb = plt.colorbar( orientation='vertical', fraction=0.10, shrink=0.7)
+	cb = plt.colorbar( orientation='horizontal', fraction=0.10, shrink=1.0, pad=0.10, aspect = 35)
 	if title is not None:
 		plt.title(title)
-	plt.savefig(output) # to take less space add: bbox_inches='tight', pad_inches=0
+	plt.savefig(output, bbox_inches='tight') # to take less space add: bbox_inches='tight', pad_inches=0
 	# Clear and then close the figure:
 	plt.clf()
 	plt.close()
