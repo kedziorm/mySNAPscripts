@@ -551,6 +551,60 @@ def getSubset(SentinelFile):
 	del SubsetOp
 	return newFile
 
+def getSMI(file1, WP = 0.01, FC = 0.89, band=None ):
+	####
+	# Calculates Soil Moisture Index (according to Hunt et al. 2009):
+	# FAW = (mv − WP )/(FC − WP )     SMI = −5 + 10*FAW
+	# mv - current volumetric water content
+	# WP - volumetric water content for wilting point
+	# FC - volumetric water content for field capacity
+	####
+	import snappy
+	from snappy import GPF
+	from snappy import ProductIO
+	
+	products = [readProd(file1)]
+	if band is None:
+		if (isBandInProd('Soil_Moisture', products[0])):
+			band = 'Soil_Moisture'
+		else:
+			# If band name is not provided, I take the first band name
+			band = products[0].getBands()[0].getName()
+	else:
+		# verify if band within the product
+		if (not isBandInProd(band, products[0])):
+			return
+	
+	prefix = "SMI"
+	expr = "-5 + 10 * ( ({0} - {1}) / ({2} - {1}) )".format(band,WP,FC)
+	
+	GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
+
+	HashMap = jpy.get_type('java.util.HashMap')
+	BandDescriptor = jpy.get_type(
+	'org.esa.snap.core.gpf.common.BandMathsOp$BandDescriptor')
+
+	targetBand1 = BandDescriptor()
+	targetBand1.name = prefix
+	targetBand1.type = 'float32'
+	targetBand1.expression = expr
+	targetBands = jpy.array(
+	'org.esa.snap.core.gpf.common.BandMathsOp$BandDescriptor', 1)
+	targetBands[0] = targetBand1
+	parameters = HashMap()
+	parameters.put('targetBands', targetBands)
+
+	result = GPF.createProduct('BandMaths', parameters, products)
+	resultFile = newFilepath(file1, prefix, False)
+	writeToLog("\t".join(["getSMI", "Calculating SMI using following expression: ", expr, "for file:", file1, "result:", resultFile]), "info")
+	ProductIO.writeProduct(result, resultFile, SecondaryOutputType[1])
+	for prod in products:
+		prod.dispose()
+	result.dispose()
+	parameters = None
+	products = None
+	return resultFile
+
 
 def getOperation(file1, file2, destination, operation, band=['Soil_Moisture','Soil_Moisture'], outType = OutputType):
 	import snappy
