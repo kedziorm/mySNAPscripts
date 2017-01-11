@@ -352,10 +352,10 @@ def isFontAvailable(font = 'Arial'):
 	return installed
 
 def getFontForName():
-	if isFontAvailable('Arial'):
-		return 'Arial'
-	elif isFontAvailable('DejaVu Sans'):
+	if isFontAvailable('DejaVu Sans'):
 		return 'DejaVu Sans'
+	elif isFontAvailable('Arial'):
+		return 'Arial'
 	else:
 		writeToLog("getFontForName - There's no 'Arial' and 'DejaVu Sans' fonts, returning 'sans-serif'","warning")
 		return 'sans-serif'
@@ -829,7 +829,8 @@ def saveHistogramForFile(file1, xtitle="Values", ytitle="Frequency", title=None,
 
 	# Set font which contains polish characters:
 	import matplotlib
-	matplotlib.rc('font', family=getFontForName())
+	font = getFontForName()
+	matplotlib.rc('font', family=font)
 
 	import matplotlib.mlab as mlab
 	import matplotlib.pyplot as plt
