@@ -88,12 +88,13 @@ def readProd(file1):
 		prod = None
 	return prod
 
-def isBandInProd(bandName, product):
+def isBandInProd(bandName, product, onlyVerify = False):
 	if bandName in product.getBandNames():
 		return True
 	else:
-		writeToLog("\t".join(["isBandInProd", bandName + " not in the " + product.getName()]))
-		writeToLog("\t".join(["isBandInProd","Available bands:","{0}".format(product.getBandNames())]))
+		log_mode = "INFO" if onlyVerify else "ERROR"
+		writeToLog("\t".join(["isBandInProd", bandName + " not in the " + product.getName()]),log_mode)
+		writeToLog("\t".join(["isBandInProd","Available bands:","{0}".format(product.getBandNames())]),log_mode)
 		return False
 
 def getStatsAndHist(inputFile,directorySuffix = None):
@@ -248,9 +249,9 @@ def writeToLog(message, messageType='ERROR', log_path = log_path):
 	logger.addHandler(hdlr)
 	logger.setLevel(logging.INFO)
 	print("Writing to log file: '{0}'".format(log_path))
-	if (messageType == 'ERROR'):
+	if (messageType.upper() == 'ERROR'):
 		logger.error(message)
-	elif (messageType == 'WARNING'):
+	elif (messageType.upper() == 'WARNING'):
 		logger.warning(message)
 	else:
 		logger.info(message)
@@ -551,7 +552,7 @@ def getSubset(SentinelFile):
 	del SubsetOp
 	return newFile
 
-def getSMI(file1, WP = 0.108, FC = 0.319, band=None ):
+def getSMI(file1, destP, WP = 0.108, FC = 0.319, band=None ):
 	####
 	# Calculates Soil Moisture Index (according to Hunt et al. 2009):
 	# FAW = (mv − WP )/(FC − WP )     SMI = −5 + 10*FAW
@@ -570,47 +571,51 @@ def getSMI(file1, WP = 0.108, FC = 0.319, band=None ):
 	import snappy
 	from snappy import GPF
 	from snappy import ProductIO
-	
-	products = [readProd(file1)]
-	if band is None:
-		if (isBandInProd('Soil_Moisture', products[0])):
-			band = 'Soil_Moisture'
-		else:
-			# If band name is not provided, I take the first band name
-			band = products[0].getBands()[0].getName()
-	else:
-		# verify if band within the product
-		if (not isBandInProd(band, products[0])):
-			return
-	
+
 	prefix = "SMI"
-	expr = "-5 + 10 * ( ({0} - {1}) / ({2} - {1}) )".format(band,WP,FC)
+
+	resultFile = os.path.join(destP,prefix + os.path.splitext(os.path.basename(file1))[0] + SecondaryOutputType[0])
+	if (not os.path.exists(resultFile)):
+		products = [readProd(file1)]
+		if band is None:
+			if (isBandInProd('Soil_Moisture', products[0], True)):
+				band = 'Soil_Moisture'
+			else:
+				# If band name is not provided, I take the first band name
+				band = products[0].getBands()[0].getName()
+		else:
+			# verify if band within the product
+			if (not isBandInProd(band, products[0])):
+				return
 	
-	GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
+		expr = "-5 + 10 * ( ({0} - {1}) / ({2} - {1}) )".format(band,WP,FC)
+	
+		GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
 
-	HashMap = jpy.get_type('java.util.HashMap')
-	BandDescriptor = jpy.get_type(
-	'org.esa.snap.core.gpf.common.BandMathsOp$BandDescriptor')
+		HashMap = jpy.get_type('java.util.HashMap')
+		BandDescriptor = jpy.get_type(
+		'org.esa.snap.core.gpf.common.BandMathsOp$BandDescriptor')
 
-	targetBand1 = BandDescriptor()
-	targetBand1.name = prefix
-	targetBand1.type = 'float32'
-	targetBand1.expression = expr
-	targetBands = jpy.array(
-	'org.esa.snap.core.gpf.common.BandMathsOp$BandDescriptor', 1)
-	targetBands[0] = targetBand1
-	parameters = HashMap()
-	parameters.put('targetBands', targetBands)
+		targetBand1 = BandDescriptor()
+		targetBand1.name = prefix
+		targetBand1.type = 'float32'
+		targetBand1.expression = expr
+		targetBands = jpy.array(
+		'org.esa.snap.core.gpf.common.BandMathsOp$BandDescriptor', 1)
+		targetBands[0] = targetBand1
+		parameters = HashMap()
+		parameters.put('targetBands', targetBands)
 
-	result = GPF.createProduct('BandMaths', parameters, products)
-	resultFile = newFilepath(file1, prefix, False)
-	writeToLog("\t".join(["getSMI", "Calculating SMI using following expression: ", expr, "for file:", file1, "result:", resultFile]), "info")
-	ProductIO.writeProduct(result, resultFile, SecondaryOutputType[1])
-	for prod in products:
-		prod.dispose()
-	result.dispose()
-	parameters = None
-	products = None
+		result = GPF.createProduct('BandMaths', parameters, products)
+		writeToLog("\t".join(["getSMI", "Calculating SMI using following expression: ", expr, "for file:", file1, "result:", resultFile]), "info")
+		ProductIO.writeProduct(result, resultFile, SecondaryOutputType[1])
+		for prod in products:
+			prod.dispose()
+		result.dispose()
+		parameters = None
+		products = None
+	else:
+		writeToLog("\t".join(["getSMI", "It seems that destination file '{0}' already exists. Bye!".format(os.path.basename(resultFile))]),"WARNING")
 	return resultFile
 
 
