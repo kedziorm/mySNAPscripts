@@ -532,7 +532,10 @@ def getSubset(SentinelFile):
 	print(("Please execute getSubset method *AFTER* executing getSigma (after using Calibration operator)"))
 	SubsetOp = snappy.jpy.get_type('org.esa.snap.core.gpf.common.SubsetOp')
 	WKTReader = snappy.jpy.get_type('com.vividsolutions.jts.io.WKTReader')
-	geom = WKTReader().read(wkt)
+	try:
+		geom = WKTReader().read(wkt)
+	except RuntimeError as e:
+		writeToLog("\t".join(["getSubset", "Error when reading wkt: '{0}', exception: '{1}'".format(wkt,e)]))
 	op = SubsetOp()
 	# read source product and set properties:
 	product = readProd(SentinelFile)
