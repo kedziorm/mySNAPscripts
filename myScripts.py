@@ -593,11 +593,11 @@ def getSMI(file1, destP, WP = 0.108, FC = 0.319, band=None ):
 		GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
 
 		HashMap = jpy.get_type('java.util.HashMap')
-		BandDescriptor = jpy.get_type(
-		'org.esa.snap.core.gpf.common.BandMathsOp$BandDescriptor')
+		BandDescriptor = jpy.get_type('org.esa.snap.core.gpf.common.BandMathsOp$BandDescriptor')
 
 		targetBand1 = BandDescriptor()
 		targetBand1.name = prefix
+		targetBand1.description = "{0} calculated using expression: '{1}'".format(prefix,expr)
 		targetBand1.type = 'float32'
 		targetBand1.expression = expr
 		targetBands = jpy.array(
@@ -666,6 +666,7 @@ def getOperation(file1, file2, destination, operation, band=['Soil_Moisture','So
 		prodlist = prodlist + "'{0}'".format(prod.getName())
 	writeToLog("\t".join(["getOperation", "{0}\t{1}".format(expr,prodlist)]), "info")
 	targetBand1.expression = expr
+	targetBand1.description = "Operation: {0} ({1}) using expression: '{2}'".format(operation[1], operation[0], expr)
 
 	targetBands = jpy.array(
 	'org.esa.snap.core.gpf.common.BandMathsOp$BandDescriptor', 1)
