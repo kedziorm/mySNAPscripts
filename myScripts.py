@@ -1056,8 +1056,12 @@ def getExtent(file1):
 	minLon = 999.99
 
 	myProd = readProd(file1)
-	GeoPos = snappy.ProductUtils.createGeoBoundary(myProd, step)
-	
+	try:
+		GeoPos = snappy.ProductUtils.createGeoBoundary(myProd, step)
+	except RuntimeError as e:
+		writeToLog("\t".join(["getExtent", "Error!!!, Probably file: '{0}' has *no* bands. Result of len(myProd.getBands()): '{1}'".format(file1, len(myProd.getBands()))]))
+		writeToLog("\t".join(["getExtent", "Error message: '{0}'".format(e)]))
+		return [0.0, 0.0, 0.0, 0.0]
 	maxLon = -minLon
 	minLat = minLon
 	maxLat = maxLon
