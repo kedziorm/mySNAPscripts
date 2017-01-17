@@ -621,6 +621,60 @@ def getSMI(file1, destP, WP = 0.108, FC = 0.319, band=None ):
 		writeToLog("\t".join(["getSMI", "It seems that destination file '{0}' already exists. Bye!".format(os.path.basename(resultFile))]),"WARNING")
 	return resultFile
 
+def getFiltered(file1, minValue = 0.0, maxValue = 1.0, band = None):
+	####
+	# Marks values outside specified range as NaN
+	# http://forum.step.esa.int/t/mark-values-outside-specific-range-as-nan/4338
+	####
+	import snappy
+	from snappy import GPF
+	from snappy import ProductIO
+
+	resultFile = os.path.splitext(file1)[0] + "_filt" + os.path.splitext(file1)[1]
+	if (not os.path.exists(resultFile)):
+		products = [readProd(file1)]
+		if band is None:
+			if (isBandInProd('Soil_Moisture', products[0], True)):
+				band = 'Soil_Moisture'
+			elif (isBandInProd('sum', products[0], True)):
+				band = 'sum'
+			else:
+				# If band name is not provided, I take the first band name
+				band = products[0].getBands()[0].getName()
+		else:
+			# verify if band within the product
+			if (not isBandInProd(band, products[0])):
+				return
+	
+		expr = "if ({0} > {2} || {0} < {1}) then NaN else {0}".format(band,minValue,maxValue)
+	
+		GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
+
+		HashMap = jpy.get_type('java.util.HashMap')
+		BandDescriptor = jpy.get_type('org.esa.snap.core.gpf.common.BandMathsOp$BandDescriptor')
+
+		targetBand1 = BandDescriptor()
+		targetBand1.name = band
+		targetBand1.description = "{0} filtered: '{1}'".format(band,expr)
+		targetBand1.type = 'float32'
+		targetBand1.expression = expr
+		targetBands = jpy.array(
+		'org.esa.snap.core.gpf.common.BandMathsOp$BandDescriptor', 1)
+		targetBands[0] = targetBand1
+		parameters = HashMap()
+		parameters.put('targetBands', targetBands)
+
+		result = GPF.createProduct('BandMaths', parameters, products)
+		writeToLog("\t".join(["getFiltered", "Filtering expression: ", expr, "for file:", file1, "result:", resultFile]), "info")
+		ProductIO.writeProduct(result, resultFile, SecondaryOutputType[1])
+		for prod in products:
+			prod.dispose()
+		result.dispose()
+		parameters = None
+		products = None
+	else:
+		writeToLog("\t".join(["getFiltered", "It seems that destination file '{0}' already exists. Bye!".format(os.path.basename(resultFile))]),"WARNING")
+	return resultFile
 
 def getOperation(file1, file2, destination, operation, band=['Soil_Moisture','Soil_Moisture'], outType = OutputType):
 	import snappy
