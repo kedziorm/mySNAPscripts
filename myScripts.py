@@ -143,12 +143,25 @@ def getAllowedFormats():
 	print(("Allowed formats to write: " + writerFormats))
 	print(("Allowed formats to read: " + readerFormats))
 
+def simplifySMOSandSentinelfileName(basename):
+	# Simplifies base name of SMOS and Sentinel file names:
+	# Tested on following names:
+	# 'ext-SM_OPER_MIR_CLF33A_20160229T000000_20160302T235959_300_002_7_1.DBL.nc'
+	# 'S1A_IW_GRDH_1SDV_20160301T161042_20160301T161107_010178_00F048_FA33.zip'
+	import re
+	dict = {'Sent': ['S1A.*_(\d{8}).*.zip', '.zip'], 'SMOS': ['ext-SM_.*_(\d{8}).*DBL.nc', '.DBL.nc']}
+	for name in dict.keys():
+		matches = re.findall(dict[name][0], basename)
+		if len(matches) > 0:
+			basename = "{0}_{1}{2}".format(name, matches[0], dict[name][1])
+	return basename
 
 def newFilepath(Filepath, prefix, limited=True):
 	directory = os.path.join(os.path.dirname(Filepath),prefix)
 	if not os.path.exists(directory):
 		os.makedirs(directory)
-	baseName = os.path.basename(Filepath)[0:45] if limited else os.path.splitext(os.path.basename(Filepath))[0]
+	baseName = os.path.basename(Filepath)[0:100] if limited else os.path.splitext(os.path.basename(Filepath))[0]
+	basename = simplifySMOSandSentinelfileName(basename)
 	return os.path.join(directory,
 	"_".join([prefix, baseName]) + OutputType[0])
 
@@ -237,7 +250,7 @@ def getNewFileName(SMOSfile1, SMOSfile2, destination, operation, band, filetype,
 	if not os.path.exists(directory):
 		os.makedirs(directory)
 	return os.path.join(directory,
-	"_".join([filetype, date1, operation, date2,band]) + OutTyp)
+	"__".join([filetype, date1, operation, date2,band]) + OutTyp)
 
 
 def writeToLog(message, messageType='ERROR', log_path = log_path):
