@@ -25,6 +25,11 @@
 # http://step.esa.int/docs/v3.0/apidoc/desktop/
 #############################################################
 
+# Prefixes added to file names:
+# calibrated (calculated sigma), 'Subset', 'Masked', 'Terrain Corrected',
+# 'soil moisture index', 'collocated' and 'histogram' files
+prefixes = ["cal", "sub", "msk", "TC", "SMI", "_coll_", "_hist_"]
+
 import os, sys
 reload(sys)  
 sys.setdefaultencoding('utf8')
@@ -160,7 +165,7 @@ def newFilepath(Filepath, prefix, limited=True):
 	directory = os.path.join(os.path.dirname(Filepath),prefix)
 	if not os.path.exists(directory):
 		os.makedirs(directory)
-	baseName = os.path.basename(Filepath)[0:100] if limited else os.path.splitext(os.path.basename(Filepath))[0]
+	baseName = os.path.basename(Filepath)[0:180] if limited else os.path.splitext(os.path.basename(Filepath))[0]
 	basename = simplifySMOSandSentinelfileName(basename)
 	return os.path.join(directory,
 	"_".join([prefix, baseName]) + OutputType[0])
@@ -240,17 +245,19 @@ def getDateFromSMOSfileName(SMOSfile1):
 
 def getNewFileName(SMOSfile1, SMOSfile2, destination, operation, band, filetype, getFullName=False, OutTyp=OutputType[0]):
 	import os
-	if getFullName:
-		date1 = os.path.splitext(os.path.basename(SMOSfile1))[0]
-		date2 = os.path.splitext(os.path.basename(SMOSfile2))[0]
-	else:
-		date1 = getDateFromSMOSfileName(SMOSfile1)
-		date2 = getDateFromSMOSfileName(SMOSfile2)
+	#if getFullName:
+	#	date1 = os.path.splitext(os.path.basename(SMOSfile1))[0]
+	#	date2 = os.path.splitext(os.path.basename(SMOSfile2))[0]
+	#else:
+	#	date1 = getDateFromSMOSfileName(SMOSfile1)
+	#	date2 = getDateFromSMOSfileName(SMOSfile2)
+	myFile1 = os.path.splitext(os.path.basename(SMOSfile1))[0]
+	myFile2 = os.path.splitext(os.path.basename(SMOSfile2))[0]
 	directory = os.path.join(destination,operation)
 	if not os.path.exists(directory):
 		os.makedirs(directory)
 	return os.path.join(directory,
-	"__".join([filetype, date1, operation, date2,band]) + OutTyp)
+	"_".join([filetype, myFile1, "_" + operation + "_", myFile2,band]) + OutTyp)
 
 
 def writeToLog(message, messageType='ERROR', log_path = log_path):
@@ -515,6 +522,8 @@ def createMAPsForFolder(path, fileMask, outputPath, fileName, whatADD=[], shapef
 def getSigma(SentinelFile):
 	# calculate sigma (radar backscatter)
 	# in ESA SNAP desktop: Radar --> Radiometric --> Calibrate
+	
+	global prefixes
 	if os.path.exists(SentinelFile):
 		newFile = newFilepath(SentinelFile, prefixes[0])
 		if (not os.path.exists(newFile)):
@@ -541,6 +550,7 @@ def getSigma(SentinelFile):
 
 
 def getSubset(SentinelFile):
+	global prefixes
 	#Initialize:
 	print(("Please execute getSubset method *AFTER* executing getSigma (after using Calibration operator)"))
 	SubsetOp = snappy.jpy.get_type('org.esa.snap.core.gpf.common.SubsetOp')
@@ -588,7 +598,8 @@ def getSMI(file1, destP, WP = 0.108, FC = 0.319, band=None ):
 	from snappy import GPF
 	from snappy import ProductIO
 
-	prefix = "SMI"
+	global prefixes
+	prefix = prefixes[4]
 
 	resultFile = os.path.join(destP,prefix + os.path.splitext(os.path.basename(file1))[0] + SecondaryOutputType[0])
 	if (not os.path.exists(resultFile)):
@@ -873,8 +884,9 @@ def saveHistForFiles(file1, xtitle="Values", ytitle="Frequency", title="Band: ",
 		saveHistogramForFile(file1, xtitle, ytitle, title, suffix,directorySuffix)
 
 def getHistNewFileName(file1, suffix = "pl"):
+	global prefixes
 	# Since LaTeX has problems with svg support, I'm saving in PDF
-	return os.path.split(os.path.split(file1)[0])[1] + os.path.basename(file1) + "_hist_" + suffix + ".pdf"
+	return os.path.split(os.path.split(file1)[0])[1] + os.path.basename(file1) + prefixes[6] + suffix + ".pdf"
 
 def getHistNewFullPath(NewFileName, histogramDirectory, directorySuffix = None):
 	directory = histogramDirectory
@@ -948,11 +960,12 @@ def getCollocated(file1, file2, destination):
 	import snappy
 	from snappy import GPF
 	from snappy import ProductIO
-
+	
+	global prefixes
 	# TODO: this should be handled in smarter way!!!
 	filetype = os.path.basename(file1).split("_")[3]
 	writeToLog("\t".join(["getCollocated", "filetype:", "{0}".format(filetype)]), "info")
-	destinationPath = getNewFileName(file1, file2, destination, "collocation", "", filetype,True)
+	destinationPath = getNewFileName(file1, file2, destination,prefixes[5], "", filetype,True)
 
 	if (not os.path.exists(destinationPath)):
 		products = [readProd(file1), readProd(file2)]
@@ -1040,7 +1053,7 @@ def getResampled(file1, destinationPath, resolution=destinationPS):
 		writeToLog("\t".join(["getResampled", "It seems that destination file '{0}' already exists. Bye!".format(os.path.basename(destinationPath))]),"WARNING")
 	return destinationPath
 
-def getTerrainCorrected(file1, destinationPath, crs='WGS84(DD)'):
+def getTerrainCorrected(file1, crs='WGS84(DD)'):
 	# According to lveci: "GRD products are not terrain corrected. Due to the nature of SAR acquisitions, in order to get an accurate geocoding you need to account for the geometry of the acquisition"
 	# "Over scenes where you have a DEM, you should use range Doppler terrain correction"
 	# Radar --> Geometric --> Terrain Correction --> Range-Doppler Terrain Correction
@@ -1049,6 +1062,9 @@ def getTerrainCorrected(file1, destinationPath, crs='WGS84(DD)'):
 	import snappy
 	from snappy import GPF
 	from snappy import ProductIO
+	
+	global prefixes
+	destinationPath = newFilepath(file1,prefixes[3])
 	if (not os.path.exists(destinationPath)):
 		product = readProd(file1)
 		
@@ -1219,6 +1235,7 @@ def getMasked(file1, maskFile=sampleSHP):
 	import snappy
 	from snappy import GPF
 	from snappy import ProductIO
+	global prefixes
 	destinationPath = newFilepath(file1, prefixes[2], False)
 	if (not os.path.exists(destinationPath)):
 		writeToLog("\t".join(["getMasked", "maskingSHP:",maskFile,str(get_whole_Product_size(maskFile))]),"info")
