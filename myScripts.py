@@ -151,15 +151,20 @@ def getAllowedFormats():
 def simplifySMOSandSentinelfileName(basename):
 	# Simplifies base name of SMOS and Sentinel file names:
 	# Tested on following names:
-	# 'ext-SM_OPER_MIR_CLF33A_20160229T000000_20160302T235959_300_002_7_1.DBL.nc'
-	# 'S1A_IW_GRDH_1SDV_20160301T161042_20160301T161107_010178_00F048_FA33.zip'
+	# fn1 = 'ext-SM_OPER_MIR_CLF33A_20160229T000000_20160302T235959_300_002_7_1.DBL.nc'
+	# fn2 = 'S1A_IW_GRDH_1SDV_20160301T161042_20160301T161107_010178_00F048_FA33.zip'
+	# fn3 = 'S1A_IW_GRDH_1SDV_20160301T161042_20160301T1'
+	# fn4 = 'ext-SM_OPER_MIR_CLF33A_20160229T000000_20160302T235959_300_002_7_1'
+	# fn5 = 'ThisShouldbeNotChanged'
 	import re
-	dict = {'Sent': ['S1A.*_(\d{8}).*.zip', '.zip'], 'SMOS': ['ext-SM_.*_(\d{8}).*DBL.nc', '.DBL.nc']}
+	extension = "{0}{1}".format(os.path.splitext(os.path.splitext(basename)[0])[1], os.path.splitext(basename)[1])
+	basename = os.path.splitext(os.path.splitext(basename)[0])[0]
+	dict = {'Sent': 'S1A.*_(20\d{6}).*', 'SMOS': 'ext-SM_.*_(20\d{6}).*'}
 	for name in dict.keys():
-		matches = re.findall(dict[name][0], basename)
+		matches = re.findall(dict[name], basename)
 		if len(matches) > 0:
-			basename = "{0}_{1}{2}".format(name, matches[0], dict[name][1])
-	return basename
+			basename = "{0}_{1}".format(name, matches[0])
+	return "{0}{1}".format(basename, extension)
 
 def newFilepath(Filepath, prefix, limited=True):
 	directory = os.path.join(os.path.dirname(Filepath),prefix)
