@@ -170,8 +170,8 @@ def newFilepath(Filepath, prefix, limited=True):
 	directory = os.path.join(os.path.dirname(Filepath),prefix)
 	if not os.path.exists(directory):
 		os.makedirs(directory)
-	baseName = os.path.basename(Filepath)[0:180] if limited else os.path.splitext(os.path.basename(Filepath))[0]
-	basename = simplifySMOSandSentinelfileName(basename)
+	baseName = simplifySMOSandSentinelfileName(os.path.basename(Filepath))
+	baseName = baseName[0:180] if limited else os.path.splitext(baseName)[0]
 	return os.path.join(directory,
 	"_".join([prefix, baseName]) + OutputType[0])
 
