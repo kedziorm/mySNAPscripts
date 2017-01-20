@@ -164,6 +164,7 @@ def simplifySMOSandSentinelfileName(basename):
 		matches = re.findall(dict[name], basename)
 		if len(matches) > 0:
 			basename = "{0}_{1}".format(name, matches[0])
+	basename = basename.replace('":Soil_Moisture',"")
 	return "{0}{1}".format(basename, extension)
 
 def newFilepath(Filepath, prefix, limited=True):
@@ -891,7 +892,7 @@ def saveHistForFiles(file1, xtitle="Values", ytitle="Frequency", title="Band: ",
 def getHistNewFileName(file1, suffix = "pl"):
 	global prefixes
 	# Since LaTeX has problems with svg support, I'm saving in PDF
-	return os.path.split(os.path.split(file1)[0])[1] + os.path.basename(file1) + prefixes[6] + suffix + ".pdf"
+	return os.path.split(os.path.split(file1)[0])[1] + simplifySMOSandSentinelfileName(os.path.basename(file1)) + prefixes[6] + suffix + ".pdf"
 
 def getHistNewFullPath(NewFileName, histogramDirectory, directorySuffix = None):
 	directory = histogramDirectory
