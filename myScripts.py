@@ -256,8 +256,8 @@ def getNewFileName(SMOSfile1, SMOSfile2, destination, operation, band, filetype,
 	#else:
 	#	date1 = getDateFromSMOSfileName(SMOSfile1)
 	#	date2 = getDateFromSMOSfileName(SMOSfile2)
-	myFile1 = os.path.splitext(os.path.basename(SMOSfile1))[0]
-	myFile2 = os.path.splitext(os.path.basename(SMOSfile2))[0]
+	myFile1 = os.path.splitext(simplifySMOSandSentinelfileName(os.path.basename(SMOSfile1)))[0]
+	myFile2 = os.path.splitext(simplifySMOSandSentinelfileName(os.path.basename(SMOSfile2)))[0]
 	directory = os.path.join(destination,operation)
 	if not os.path.exists(directory):
 		os.makedirs(directory)
@@ -968,7 +968,8 @@ def getCollocated(file1, file2, destination):
 	
 	global prefixes
 	# TODO: this should be handled in smarter way!!!
-	filetype = os.path.basename(file1).split("_")[3]
+	#filetype = os.path.basename(file1).split("_")[3]
+	filetype = "_"
 	writeToLog("\t".join(["getCollocated", "filetype:", "{0}".format(filetype)]), "info")
 	destinationPath = getNewFileName(file1, file2, destination,prefixes[5], "", filetype,True)
 
