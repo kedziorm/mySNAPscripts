@@ -256,8 +256,8 @@ def getNewFileName(SMOSfile1, SMOSfile2, destination, operation, band, filetype,
 	#else:
 	#	date1 = getDateFromSMOSfileName(SMOSfile1)
 	#	date2 = getDateFromSMOSfileName(SMOSfile2)
-	myFile1 = os.path.splitext(simplifySMOSandSentinelfileName(os.path.basename(SMOSfile1)))[0]
-	myFile2 = os.path.splitext(simplifySMOSandSentinelfileName(os.path.basename(SMOSfile2)))[0]
+	myFile1 = os.path.splitext(simplifySMOSandSentinelfileName(os.path.basename(SMOSfile1)))[0][0:20]
+	myFile2 = os.path.splitext(simplifySMOSandSentinelfileName(os.path.basename(SMOSfile2)))[0][0:20]
 	directory = os.path.join(destination,operation)
 	if not os.path.exists(directory):
 		os.makedirs(directory)
