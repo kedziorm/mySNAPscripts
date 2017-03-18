@@ -366,12 +366,14 @@ def isFontAvailable(font = 'Arial'):
 	installed = True
 	import matplotlib.pyplot as plt
 	import warnings
+	import tempfile
 
 	with warnings.catch_warnings(record=True) as w:
+		g=tempfile.NamedTemporaryFile(delete=True,suffix='.png')
 		warnings.simplefilter("always")
 		plt.rcParams['font.family'] = font
 		plt.text(0,0,font)
-		plt.savefig(font+'.png')
+		plt.savefig(g)
 
 		if len(w):
 			installed = False
