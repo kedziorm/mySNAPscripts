@@ -378,6 +378,7 @@ def isFontAvailable(font = 'Arial'):
 		if len(w):
 			installed = False
 		g.close()
+		plt.clf()
 	return installed
 
 def getFontForName():
