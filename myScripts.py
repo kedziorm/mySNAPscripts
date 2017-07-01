@@ -390,7 +390,7 @@ def getFontForName():
 		writeToLog("getFontForName - There's no 'Arial' and 'DejaVu Sans' fonts, returning 'sans-serif'","warning")
 		return 'sans-serif'
 
-def createMap(raster, vmax, vmin, output, shapefile=None, title=None):
+def createMap(raster, vmax, vmin, output, shapefile=None, title=None, PDFinsteadOfPng=True):
 	###################################################################
 	# Author: Mateusz Kędzior
 	# Creates image from raster and shapefile
@@ -501,6 +501,11 @@ def createMap(raster, vmax, vmin, output, shapefile=None, title=None):
 	cb = plt.colorbar( orientation='horizontal', fraction=0.10, shrink=1.0, pad=0.10, aspect = 35)
 	if title is not None:
 		plt.title(title)
+	if PDFinsteadOfPng:
+		output = output.replace(".png",".pdf").replace(".jpg",".pdf").replace(".bmp",".pdf")
+		writeToLog("\t".join(["createMap", 'Please note that your map will saved in PDF. If this is a source of issues, please set PDFinsteadOfPng to False']),"WARNING")
+	else:
+		writeToLog("\t".join(["createMap", 'Please note that your map will be **NOT** saved in pdf which may results in lower quality when printing']),"info")
 	plt.savefig(output, bbox_inches='tight') # to take less space add: bbox_inches='tight', pad_inches=0
 	# Clear and then close the figure:
 	plt.clf()
