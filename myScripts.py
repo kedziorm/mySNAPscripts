@@ -991,12 +991,12 @@ def getCollocated(file1, file2, destination):
 
 		parameters = HashMap()
 		sourceProducts = HashMap()
-		sourceProducts.put("master", products[0])
-		sourceProducts.put("slave", products[1])
-		parameters.put('renameMasterComponents', True)
-		parameters.put('renameSlaveComponents', True)
-		parameters.put('masterComponentPattern', "${ORIGINAL_NAME}_M")
-		parameters.put('slaveComponentPattern', "${ORIGINAL_NAME}_S")
+		sourceProducts.put("main", products[0])
+		sourceProducts.put("subordinate", products[1])
+		parameters.put('renameMainComponents', True)
+		parameters.put('renameSubordinateComponents', True)
+		parameters.put('mainComponentPattern', "${ORIGINAL_NAME}_M")
+		parameters.put('subordinateComponentPattern', "${ORIGINAL_NAME}_S")
 		parameters.put('resamplingType', getCollocatedResamplingType)
 		
 		result = GPF.createProduct('Collocate', parameters, sourceProducts)
